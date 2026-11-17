@@ -1,6 +1,24 @@
+
+/* general */
+
 body {
     background: rgb(139, 139, 139);
 }
+
+a {
+    color: #551A8B;
+}
+
+a:visited {
+    color: #551A8B;
+}
+
+a:active {
+    color: red;
+}
+
+
+/* main navigation */
 
 nav {
     position: fixed;
@@ -11,6 +29,14 @@ nav {
     z-index: 1000;
     padding: 10px;
 }
+
+nav a.active,
+nav a.active:visited {
+    color: red;
+}
+
+
+/* sub navigation */
 
 #sub-nav {
     position: fixed;
@@ -23,6 +49,8 @@ nav {
 }
 
 
+/* right side text */
+
 #right-text {
     position: fixed;
     top: 20px;
@@ -31,6 +59,9 @@ nav {
     gap: 25px;
     z-index: 1000;
 }
+
+
+/* main content */
 
 #content a {
     display: table;
@@ -54,24 +85,47 @@ nav {
     text-decoration: none;
 }
 
-a {
-    color: #551A8B;
-}
 
-a:visited {
-    color: #551A8B;
-}
+/* o2 video */
 
-a:active {
-    color: red;
-}
-
-#content iframe {
+#content iframe,
+#overlay iframe {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
+
+/* o2 video side text */
+
+#overlay .video-side-text {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #551A8B;
+    text-decoration: none;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: normal;
+    pointer-events: none;
+}
+
+#overlay .video-side-text.left {
+    left: 220px;
+    text-align: left;
+}
+
+#overlay .video-side-text.right {
+    right: 220px;
+    text-align: right;
+}
+
+#overlay iframe {
+    pointer-events: auto;
+}
+
+
+/* overlay */
 
 #overlay {
     position: fixed;
@@ -80,10 +134,72 @@ a:active {
     cursor: pointer;
 }
 
-#overlay iframe {
+
+/* o4 text overlay */
+
+#overlay .corner-text {
+    position: fixed;
+    z-index: 600;
+    pointer-events: none;
+    color: #551A8B;
+    text-decoration: none;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: normal;
+}
+
+
+/* o4 text positions */
+
+#overlay .top-left {
+    top: 100px;
+    left: 150px;
+}
+
+#overlay .top-right {
+    top: 100px;
+    right: 150px;
+    text-align: right;
+}
+
+#overlay .bottom-left {
+    bottom: 100px;
+    left: 150px;
+}
+
+#overlay .bottom-right {
+    bottom: 100px;
+    right: 150px;
+    text-align: right;
+}
+
+/* print layout */
+
+.print-item {
+    display: flex;
+    align-items: flex-end;
+    gap: 30px;
+}
+
+.print-description {
+    margin-bottom: 100px;
+    margin-left: 20px;
+    color: #551A8B;
+    text-decoration: none;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: normal;
+}
+
+/* o8 center picture */
+
+#overlay .center-picture {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    pointer-events: auto;
+    width: auto;
+    max-width: 80vw;
+    max-height: 180px;
+    object-fit: contain;
 }
