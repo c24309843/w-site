@@ -4,6 +4,27 @@ let currentOverlay = null;
 let activeMainLink = null;
 let activeSubLink = null;
 
+/* main page corner text */
+
+const mainPageText = document.createElement("div");
+mainPageText.innerHTML = `
+    <div class="bottom-left-text">
+</div>
+    <div class="bottom-right-text">
+    :::::<br>
+    :::::<br>
+    :::::<br>
+    :::::<br>
+    :::::</div>
+`;
+
+mainPageText.style.position = "fixed";
+mainPageText.style.inset = "0";
+mainPageText.style.pointerEvents = "none";
+mainPageText.style.zIndex = "99999";
+
+document.body.appendChild(mainPageText);
+
 function showPage(page, link) {
     const content = document.getElementById("content");
     let overlay = document.getElementById("overlay");
@@ -55,93 +76,118 @@ function showPage(page, link) {
         overlay.innerHTML = "";
         currentOverlay = page;
 
-if (page === "o2") {
-    overlay.innerHTML = `
-        <div class="video-side-text left">-------------------------------------------------------------</div>
+        if (page === "o2") {
+            overlay.innerHTML = `
+                <div class="video-side-text left">-------------------------------------------------------------</div>
 
-<iframe
-    src="https://www.youtube.com/embed/piMIPHVneOg?controls=0&modestbranding=1&rel=0"
-    width="550"
-    height="415"
-    allow="autoplay; encrypted-media"
-    allowfullscreen>
-</iframe>
+                <iframe
+                    src="https://www.youtube.com/embed/piMIPHVneOg?controls=0&modestbranding=1&rel=0"
+                    width="550"
+                    height="415"
+                    allow="autoplay; encrypted-media"
+                    allowfullscreen>
+                </iframe>
 
-        <div class="video-side-text right">-------------------------------------------------------------</div>
-    `;
-}
+                <div class="video-side-text right">-------------------------------------------------------------</div>
+            `;
+        }
 
         if (page === "o4") {
-    overlay.innerHTML = `
-        <div class="corner-text top-left">
-        ------------------------------------------------------------------------------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        </div>
-        <div class="corner-text top-right">
-        ------------------------------------------------------------------------------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        </div>
-        <div class="corner-text bottom-left">
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------------------------------------------------------------------------------<br>
-        </div>
-        <div class="corner-text bottom-right">
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------------------------------------------------------------------------------<br>
-        </div>
-    `;
-}
+            overlay.innerHTML = `
+                <div class="corner-text top-left">
+                ------------------------------------------------------------------------------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                </div>
+                <div class="corner-text top-right">
+                ------------------------------------------------------------------------------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                </div>
+                <div class="corner-text bottom-left">
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------------------------------------------------------------------------------<br>
+                </div>
+                <div class="corner-text bottom-right">
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------------------------------------------------------------------------------<br>
+                </div>
+            `;
+        }
 
-if (page === "o7") {
-    overlay.innerHTML = `
-        <div class="corner-text top-left">
-        ------------------------------------------------------------------------------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        </div>
-        <div class="corner-text top-right">
-        ------------------------------------------------------------------------------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        </div>
-        <div class="corner-text bottom-left">
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ooooooooooooooooooooooooooooooooooooooooooooooooooooooo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ooooooooooooooooooooooo<br>
-        </div>
-        <div class="corner-text bottom-right">
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------<br>
-        ------------------------------------------------------------------------------------------------------------<br>
-        </div>
-    `;
-}
+        if (page === "o7") {
+            overlay.innerHTML = `
+                <div class="corner-text top-left">
+                ------------------------------------------------------------------------------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                </div>
+                <div class="corner-text top-right">
+                ------------------------------------------------------------------------------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                </div>
+                <div class="corner-text bottom-left">
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ooooooooooooooooooooooooooooooooooooooooooooooooooooooo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ooooooooooooooooooooooo<br>
+                </div>
+                <div class="corner-text bottom-right">
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------<br>
+                ------------------------------------------------------------------------------------------------------------<br>
+                </div>
+            `;
+        }
 
-if (page === "o8") {
-    overlay.innerHTML = `
-        <img src="pic/rnd/20260207_144703.png" class="center-picture">
-    `;
-}
+        if (page === "o8") {
+            overlay.innerHTML = `
+                <img src="pic/rnd/20260207_144703.png" class="center-picture">
+            `;
+        }
+
+        /* o9 tumblr post */
+
+        if (page === "o9") {
+            overlay.innerHTML = `
+                <div class="tumblr-post-container">
+                    <iframe
+                        class="tumblr-embed"
+                        src="https://embed.tumblr.com/embed/post/t:GBq4BHiVEj-zFU_vhdq0nA/809714734371930112/v2"
+                        width="540"
+                        height="700"
+                        frameborder="0">
+                    </iframe>
+
+                    <div class="link-picture">
+                        <div class="line-1">o o o o<br>
+                        o o o o<br>
+                        o o o o</div>
+
+                        <div class="line-3">ooooooooooooooooooooooooooooooooooooooooooo</div>
+                        <div class="line-4">o o o o o o o o o o o o o o o o o</div>
+                    </div>
+                </div>
+            `;
+        }
 
         return;
     }
@@ -164,6 +210,7 @@ if (page === "o8") {
             activeMainLink.classList.remove("active");
             activeMainLink = null;
         }
+
         return;
     }
 
@@ -210,10 +257,10 @@ if (page === "o8") {
 </div>
 
             <a id="print-text" href="#">
-                about the filthies, the knick knocks.<br>
+                abou----------------cks.<br>
                 gnow gnow gnow gnow.<br>
-                cock nigger bitch fuck<br>
-                nig boy we dont like cock fuck
+                coc--------itc------ck<br>
+                ni--------------------ck
             </a>
         `;
     }
@@ -224,4 +271,3 @@ if (page === "o8") {
     if (page === "links") content.innerHTML = "";
     if (page === "cock") content.innerHTML = "";
 }
-

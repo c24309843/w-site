@@ -203,3 +203,72 @@ nav a.active:visited {
     max-height: 180px;
     object-fit: contain;
 }
+
+/* o9 tumblr text */
+
+#overlay .tumblr-post-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 540px;
+    height: 700px;
+}
+
+#overlay .tumblr-embed {
+    display: block;
+    width: 540px;
+    height: 700px;
+    border: none;
+}
+
+/* link picture */
+
+#overlay .link-picture {
+    position: absolute;
+    inset: 0;
+    color: #551A8B;
+    z-index: 2;
+}
+
+#overlay .link-picture div {
+    position: absolute;
+    white-space: nowrap;
+}
+
+#overlay .line-1 {
+    top: 685px;
+    left: 1000px;
+}
+
+#overlay .line-3 {
+    top: 150px;
+    left: 500px;
+}
+
+#overlay .line-4 {
+    top: 230px;
+    left: 600px;
+}
+
+/* main page corner text */
+
+.bottom-left-text,
+.bottom-right-text {
+    position: fixed;
+    bottom: 25px;
+    color: #551A8B;
+    z-index: 99999;
+}
+
+.bottom-left-text {
+    left: 35px;
+    bottom: 35px;
+}
+
+.bottom-right-text {
+    right: 35px;
+    bottom: 35px;
+}
+    bottom: 35px;
+}
