@@ -29,25 +29,29 @@ function syncMobileViewport() {
 }
 
 function syncO2SideText() {
-    const player = document.querySelector("#overlay .o2-player");
-    const leftText = document.getElementById("video-side-text-left");
-    const rightText = document.getElementById("video-side-text-right");
+    const leftText = document.querySelector("#overlay .video-side-text.left");
+    const rightText = document.querySelector("#overlay .video-side-text.right");
+    const viewport = window.visualViewport;
 
-    if (!player || !leftText || !rightText) {
+    if (!leftText || !rightText || !viewport) {
         return;
     }
 
-    const rect = player.getBoundingClientRect();
-    const centerY = rect.top + (rect.height / 2);
+    const centerX = viewport.offsetLeft + (viewport.width / 2);
+    const centerY = viewport.offsetTop + (viewport.height / 2);
 
     leftText.style.position = "fixed";
-    leftText.style.left = `${rect.left - 295}px`;
     leftText.style.top = `${centerY}px`;
+    leftText.style.left = `${centerX - 570}px`;
+    leftText.style.width = "275px";
+    leftText.style.textAlign = "right";
     leftText.style.transform = "translateY(-50%)";
 
     rightText.style.position = "fixed";
-    rightText.style.left = `${rect.right + 20}px`;
     rightText.style.top = `${centerY}px`;
+    rightText.style.left = `${centerX + 295}px`;
+    rightText.style.width = "275px";
+    rightText.style.textAlign = "left";
     rightText.style.transform = "translateY(-50%)";
 }
 
@@ -336,19 +340,17 @@ function showPage(page, link) {
 
         if (page === "o2") {
             overlay.innerHTML = `
-                <div class="o2-player">
-                    <div id="video-side-text-left" class="video-side-text left">------------------------------------</div>
+                <div class="video-side-text left">------------------------------------</div>
 
-                    <iframe
-                        src="https://www.youtube.com/embed/piMIPHVneOg?controls=0&modestbranding=1&rel=0"
-                        width="550"
-                        height="415"
-                        allow="autoplay; encrypted-media"
-                        allowfullscreen>
-                    </iframe>
+                <iframe
+                    src="https://www.youtube.com/embed/piMIPHVneOg?controls=0&modestbranding=1&rel=0"
+                    width="550"
+                    height="415"
+                    allow="autoplay; encrypted-media"
+                    allowfullscreen>
+                </iframe>
 
-                    <div id="video-side-text-right" class="video-side-text right">------------------------------------</div>
-                </div>
+                <div class="video-side-text right">------------------------------------</div>
             `;
             requestAnimationFrame(syncO2SideText);
         }

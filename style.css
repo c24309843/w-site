@@ -166,28 +166,6 @@ nav a.active:visited {
     transform: translate(-50%, -50%);
 }
 
-/* o2 video assembly */
-
-#overlay .o2-player {
-    position: fixed;
-    top: var(--viewport-center-y, 50%);
-    left: var(--viewport-center-x, 50%);
-    width: 550px;
-    height: 415px;
-    transform: translate(-50%, -50%);
-    z-index: 601;
-}
-
-#overlay .o2-player iframe {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 550px !important;
-    height: 415px !important;
-    transform: none !important;
-    z-index: 1;
-}
-
 /* o2 video side text */
 
 #overlay .video-side-text {
@@ -203,15 +181,15 @@ nav a.active:visited {
 }
 
 #overlay .video-side-text.left {
-    right: auto;
-    left: -295px;
+    left: calc(var(--viewport-center-x, 50%) - 295px - 275px);
+    top: var(--viewport-center-y, 50%);
     width: 275px;
     text-align: right;
 }
 
 #overlay .video-side-text.right {
-    right: auto;
-    left: 570px;
+    left: calc(var(--viewport-center-x, 50%) + 295px);
+    top: var(--viewport-center-y, 50%);
     width: 275px;
     text-align: left;
 }
