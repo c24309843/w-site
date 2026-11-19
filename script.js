@@ -6,6 +6,31 @@ let currentOverlay = null;
 let activeMainLink = null;
 let activeSubLink = null;
 
+function syncMobileViewport() {
+    const viewport = window.visualViewport;
+
+    if (!viewport) {
+        return;
+    }
+
+    const centerX = viewport.offsetLeft + (viewport.width / 2);
+    const centerY = viewport.offsetTop + (viewport.height / 2);
+
+    document.documentElement.style.setProperty("--viewport-center-x", `${centerX}px`);
+    document.documentElement.style.setProperty("--viewport-center-y", `${centerY}px`);
+}
+
+if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", syncMobileViewport);
+    window.visualViewport.addEventListener("scroll", syncMobileViewport);
+}
+
+window.addEventListener("resize", syncMobileViewport);
+window.addEventListener("orientationchange", syncMobileViewport);
+window.addEventListener("scroll", syncMobileViewport, { passive: true });
+
+syncMobileViewport();
+
 
 /* page navigation */
 
