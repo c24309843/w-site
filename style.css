@@ -201,13 +201,15 @@ nav a.active:visited {
 }
 
 #overlay .video-side-text.left {
-    right: 570px;
-    text-align: left;
+    left: -295px;
+    width: 275px;
+    text-align: right;
 }
 
 #overlay .video-side-text.right {
     left: 570px;
-    text-align: right;
+    width: 275px;
+    text-align: left;
 }
 
 #overlay iframe {
