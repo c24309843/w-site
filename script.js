@@ -71,7 +71,7 @@ function fitSubNavigation() {
     if (naturalWidth > availableWidth) {
         fitFactor = Math.max(
             0,
-            (availableWidth - linksWidth) / totalOriginalMargin
+            (availableWidth - linksWidth - gapsWidth) / totalOriginalMargin
         );
     }
 
