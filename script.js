@@ -25,34 +25,6 @@ function syncMobileViewport() {
     document.documentElement.style.setProperty("--viewport-right", `${viewport.offsetLeft + viewport.width}px`);
     document.documentElement.style.setProperty("--viewport-bottom", `${viewport.offsetTop + viewport.height}px`);
 
-    syncO2SideText();
-}
-
-function syncO2SideText() {
-    const leftText = document.querySelector("#overlay .video-side-text.left");
-    const rightText = document.querySelector("#overlay .video-side-text.right");
-    const viewport = window.visualViewport;
-
-    if (!leftText || !rightText || !viewport) {
-        return;
-    }
-
-    const centerX = viewport.offsetLeft + (viewport.width / 2);
-    const centerY = viewport.offsetTop + (viewport.height / 2);
-
-    leftText.style.position = "fixed";
-    leftText.style.top = `${centerY}px`;
-    leftText.style.left = `${centerX - 570}px`;
-    leftText.style.width = "275px";
-    leftText.style.textAlign = "right";
-    leftText.style.transform = "translateY(-50%)";
-
-    rightText.style.position = "fixed";
-    rightText.style.top = `${centerY}px`;
-    rightText.style.left = `${centerX + 295}px`;
-    rightText.style.width = "275px";
-    rightText.style.textAlign = "left";
-    rightText.style.transform = "translateY(-50%)";
 }
 
 if (window.visualViewport) {
@@ -352,7 +324,6 @@ function showPage(page, link) {
 
                 <div class="video-side-text right">------------------------------------</div>
             `;
-            requestAnimationFrame(syncO2SideText);
         }
 
 
