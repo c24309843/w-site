@@ -60,7 +60,7 @@ function showPage(page, link) {
             content.innerHTML = `
 <div class="print-item">
     <a href="pic/print/Scan_20260119 (2).jpg" target="_blank">
-        <img src="pic/print/Scan_20260119 (2).jpg">
+        <img src="pic/print/Scan_20260119 (2).jpg" width="1251" height="1807">
     </a>
 
     <div class="print-description">
@@ -73,9 +73,9 @@ function showPage(page, link) {
     </div>
 
 <div class="side-images">
-    <img src="pic/print/Scan_20260119 (20).jpg"><br>
-    <img src="pic/print/Scan_20260119 (20).jpg"><br>
-    <img src="pic/print/Scan_20260119 (20).jpg">
+    <img src="pic/print/Scan_20260119 (20).jpg" width="3252" height="2112"><br>
+    <img src="pic/print/Scan_20260119 (20).jpg" width="3252" height="2112"><br>
+    <img src="pic/print/Scan_20260119 (20).jpg" width="3252" height="2112">
 
     <div class="side-image-text">
     <br><br><br><br><br>
@@ -91,7 +91,7 @@ function showPage(page, link) {
 
             <div class="print-item">
                 <a href="pic/print/Scan_20260119.jpg" target="_blank">
-                    <img src="pic/print/Scan_20260119.jpg">
+                    <img src="pic/print/Scan_20260119.jpg" width="3327" height="2125">
                 </a>
 
                 <div class="print-description">
@@ -120,7 +120,7 @@ function showPage(page, link) {
             content.innerHTML = `
                 <div class="w-item">
                     <a href="pic/w/20240605_013611.jpg" target="_blank">
-                        <img src="pic/w/20240605_013611.jpg">
+                        <img src="pic/w/20240605_013611.jpg" width="4000" height="3000">
                     </a>
 
                     <div class="w-description">
@@ -346,7 +346,7 @@ function showPage(page, link) {
 
         if (page === "o8") {
             overlay.innerHTML = `
-                <img src="pic/rnd/20260207_144703.png" class="center-picture">
+                <img src="pic/rnd/20260207_144703.png" width="974" height="532" class="center-picture">
             `;
         }
 
