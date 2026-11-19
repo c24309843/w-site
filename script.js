@@ -305,17 +305,19 @@ function showPage(page, link) {
 
         if (page === "o2") {
             overlay.innerHTML = `
-                <div class="video-side-text left">------------------------------------</div>
+                <div class="o2-player">
+                    <div class="video-side-text left">------------------------------------</div>
 
-                <iframe
-                    src="https://www.youtube.com/embed/piMIPHVneOg?controls=0&modestbranding=1&rel=0"
-                    width="550"
-                    height="415"
-                    allow="autoplay; encrypted-media"
-                    allowfullscreen>
-                </iframe>
+                    <iframe
+                        src="https://www.youtube.com/embed/piMIPHVneOg?controls=0&modestbranding=1&rel=0"
+                        width="550"
+                        height="415"
+                        allow="autoplay; encrypted-media"
+                        allowfullscreen>
+                    </iframe>
 
-                <div class="video-side-text right">------------------------------------</div>
+                    <div class="video-side-text right">------------------------------------</div>
+                </div>
             `;
         }
 

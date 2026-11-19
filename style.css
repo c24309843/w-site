@@ -166,11 +166,29 @@ nav a.active:visited {
     transform: translate(-50%, -50%);
 }
 
+#overlay .o2-player {
+    position: fixed;
+    top: var(--viewport-center-y, 50%);
+    left: var(--viewport-center-x, 50%);
+    width: 550px;
+    height: 415px;
+    transform: translate(-50%, -50%);
+}
+
+#overlay .o2-player iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 550px;
+    height: 415px;
+    transform: none;
+}
+
 /* o2 video side text */
 
 #overlay .video-side-text {
-    position: fixed;
-    top: var(--viewport-center-y, 50%);
+    position: absolute;
+    top: 50%;
     transform: translateY(-50%);
     color: #551A8B;
     text-decoration: none;
@@ -181,12 +199,12 @@ nav a.active:visited {
 }
 
 #overlay .video-side-text.left {
-    right: calc(var(--viewport-center-x, 50%) + 295px);
+    right: calc(100% + 20px);
     text-align: left;
 }
 
 #overlay .video-side-text.right {
-    left: calc(var(--viewport-center-x, 50%) + 295px);
+    left: calc(100% + 20px);
     text-align: right;
 }
 
