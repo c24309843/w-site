@@ -25,61 +25,6 @@ function syncMobileViewport() {
     document.documentElement.style.setProperty("--viewport-right", `${viewport.offsetLeft + viewport.width}px`);
     document.documentElement.style.setProperty("--viewport-bottom", `${viewport.offsetTop + viewport.height}px`);
 
-    syncO2SideText();
-    syncCenteredOverlay();
-}
-
-function syncCenteredOverlay() {
-    const viewport = window.visualViewport;
-
-    if (!viewport) {
-        return;
-    }
-
-    const centerX = viewport.offsetLeft + (viewport.width / 2);
-    const centerY = viewport.offsetTop + (viewport.height / 2);
-    const centeredElements = document.querySelectorAll(
-        "#overlay .center-picture, #overlay .tumblr-post-container, #overlay .tumblr-embed"
-    );
-
-    centeredElements.forEach((element) => {
-        element.style.position = "fixed";
-        element.style.left = `${centerX}px`;
-        element.style.top = `${centerY}px`;
-    });
-
-    const picture = document.querySelector("#overlay .center-picture");
-    if (picture) {
-        picture.style.transform = "translate(-50%, -50%)";
-    }
-
-    const container = document.querySelector("#overlay .tumblr-post-container");
-    if (container) {
-        container.style.transform = "translate(-50%, -50%)";
-    }
-}
-
-function syncO2SideText() {
-    const player = document.querySelector("#overlay .o2-player");
-    const leftText = document.getElementById("video-side-text-left");
-    const rightText = document.getElementById("video-side-text-right");
-
-    if (!player || !leftText || !rightText) {
-        return;
-    }
-
-    const rect = player.getBoundingClientRect();
-    const centerY = rect.top + (rect.height / 2);
-
-    leftText.style.position = "fixed";
-    leftText.style.left = `${rect.left - 295}px`;
-    leftText.style.top = `${centerY}px`;
-    leftText.style.transform = "translateY(-50%)";
-
-    rightText.style.position = "fixed";
-    rightText.style.left = `${rect.right + 20}px`;
-    rightText.style.top = `${centerY}px`;
-    rightText.style.transform = "translateY(-50%)";
 }
 
 if (window.visualViewport) {
@@ -367,21 +312,18 @@ function showPage(page, link) {
 
         if (page === "o2") {
             overlay.innerHTML = `
-                <div class="o2-player">
-                    <div id="video-side-text-left" class="video-side-text left">------------------------------------</div>
+                <div class="video-side-text left">------------------------------------</div>
 
-                    <iframe
-                        src="https://www.youtube.com/embed/piMIPHVneOg?controls=0&modestbranding=1&rel=0"
-                        width="550"
-                        height="415"
-                        allow="autoplay; encrypted-media"
-                        allowfullscreen>
-                    </iframe>
+                <iframe
+                    src="https://www.youtube.com/embed/piMIPHVneOg?controls=0&modestbranding=1&rel=0"
+                    width="550"
+                    height="415"
+                    allow="autoplay; encrypted-media"
+                    allowfullscreen>
+                </iframe>
 
-                    <div id="video-side-text-right" class="video-side-text right">------------------------------------</div>
-                </div>
+                <div class="video-side-text right">------------------------------------</div>
             `;
-            requestAnimationFrame(syncO2SideText);
         }
 
 
@@ -496,7 +438,6 @@ function showPage(page, link) {
             overlay.innerHTML = `
                 <img src="pic/rnd/20260207_144703.png" width="974" height="532" class="center-picture">
             `;
-            requestAnimationFrame(syncCenteredOverlay);
         }
 
 
@@ -527,7 +468,6 @@ function showPage(page, link) {
                     </div>
                 </div>
             `;
-            requestAnimationFrame(syncCenteredOverlay);
         }
 
 
