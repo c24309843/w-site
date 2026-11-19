@@ -6,6 +6,19 @@ let currentOverlay = null;
 let activeMainLink = null;
 let activeSubLink = null;
 
+function openImagePreview(src) {
+    let preview = document.getElementById("image-preview");
+
+    if (!preview) {
+        preview = document.createElement("div");
+        preview.id = "image-preview";
+        preview.addEventListener("click", () => preview.remove());
+        document.body.appendChild(preview);
+    }
+
+    preview.innerHTML = `<img src="${src}" alt="">`;
+}
+
 function syncMobileViewport() {
     const viewport = window.visualViewport;
 
@@ -149,7 +162,7 @@ function showPage(page, link) {
         if (page === "prints") {
             content.innerHTML = `
 <div class="print-item">
-    <a href="pic/print/Scan_20260119 (2).jpg" target="_blank">
+    <a href="pic/print/Scan_20260119 (2).jpg" onclick="openImagePreview(this.href); return false;">
         <img src="pic/print/Scan_20260119 (2).jpg" width="1251" height="1807">
     </a>
 
@@ -180,7 +193,7 @@ function showPage(page, link) {
 </div>
 
             <div class="print-item">
-                <a href="pic/print/Scan_20260119.jpg" target="_blank">
+                <a href="pic/print/Scan_20260119.jpg" onclick="openImagePreview(this.href); return false;">
                     <img src="pic/print/Scan_20260119.jpg" width="3327" height="2125">
                 </a>
 
@@ -209,7 +222,7 @@ function showPage(page, link) {
         if (page === "w") {
             content.innerHTML = `
                 <div class="w-item">
-                    <a href="pic/w/20240605_013611.jpg" target="_blank">
+                    <a href="pic/w/20240605_013611.jpg" onclick="openImagePreview(this.href); return false;">
                         <img src="pic/w/20240605_013611.jpg" width="4000" height="3000">
                     </a>
 
