@@ -240,24 +240,24 @@ nav a.active:visited {
 /* o4 text positions */
 
 #overlay .top-left {
-    top: 100px;
-    left: 150px;
+    top: calc(var(--viewport-offset-y, 0px) + 100px);
+    left: calc(var(--viewport-offset-x, 0px) + 150px);
 }
 
 #overlay .top-right {
-    top: 100px;
-    right: 150px;
+    top: calc(var(--viewport-offset-y, 0px) + 100px);
+    right: calc(100vw - var(--viewport-right, 100vw) + 150px);
     text-align: right;
 }
 
 #overlay .bottom-left {
-    bottom: 100px;
-    left: 150px;
+    bottom: calc(100vh - var(--viewport-bottom, 100vh) + 100px);
+    left: calc(var(--viewport-offset-x, 0px) + 150px);
 }
 
 #overlay .bottom-right {
-    bottom: 100px;
-    right: 150px;
+    bottom: calc(100vh - var(--viewport-bottom, 100vh) + 100px);
+    right: calc(100vw - var(--viewport-right, 100vw) + 150px);
     text-align: right;
 }
 
@@ -275,8 +275,8 @@ nav a.active:visited {
 
 #overlay .center-picture {
     position: fixed;
-    top: 50%;
-    left: 50%;
+    top: var(--viewport-center-y, 50%);
+    left: var(--viewport-center-x, 50%);
     transform: translate(-50%, -50%);
     width: auto;
     max-width: 80vw;
@@ -289,8 +289,8 @@ nav a.active:visited {
 
 #overlay .tumblr-embed {
     position: fixed;
-    top: 50%;
-    left: 50%;
+    top: var(--viewport-center-y, 50%);
+    left: var(--viewport-center-x, 50%);
     transform: translate(-50%, -50%);
     width: 540px;
     height: 700px;
@@ -302,8 +302,8 @@ nav a.active:visited {
 
 #overlay .tumblr-post-container {
     position: fixed;
-    top: 50%;
-    left: 50%;
+    top: var(--viewport-center-y, 50%);
+    left: var(--viewport-center-x, 50%);
     transform: translate(-50%, -50%);
     width: 540px;
     height: 700px;
