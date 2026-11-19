@@ -26,6 +26,37 @@ function syncMobileViewport() {
     document.documentElement.style.setProperty("--viewport-bottom", `${viewport.offsetTop + viewport.height}px`);
 
     syncO2SideText();
+    syncCenteredOverlay();
+}
+
+function syncCenteredOverlay() {
+    const viewport = window.visualViewport;
+
+    if (!viewport) {
+        return;
+    }
+
+    const centerX = viewport.offsetLeft + (viewport.width / 2);
+    const centerY = viewport.offsetTop + (viewport.height / 2);
+    const centeredElements = document.querySelectorAll(
+        "#overlay .center-picture, #overlay .tumblr-post-container, #overlay .tumblr-embed"
+    );
+
+    centeredElements.forEach((element) => {
+        element.style.position = "fixed";
+        element.style.left = `${centerX}px`;
+        element.style.top = `${centerY}px`;
+    });
+
+    const picture = document.querySelector("#overlay .center-picture");
+    if (picture) {
+        picture.style.transform = "translate(-50%, -50%)";
+    }
+
+    const container = document.querySelector("#overlay .tumblr-post-container");
+    if (container) {
+        container.style.transform = "translate(-50%, -50%)";
+    }
 }
 
 function syncO2SideText() {
@@ -465,6 +496,7 @@ function showPage(page, link) {
             overlay.innerHTML = `
                 <img src="pic/rnd/20260207_144703.png" width="974" height="532" class="center-picture">
             `;
+            requestAnimationFrame(syncCenteredOverlay);
         }
 
 
@@ -495,6 +527,7 @@ function showPage(page, link) {
                     </div>
                 </div>
             `;
+            requestAnimationFrame(syncCenteredOverlay);
         }
 
 
