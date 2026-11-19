@@ -5,6 +5,12 @@ body {
     background: rgb(139, 139, 139);
 }
 
+@media (max-width: 980px) {
+    html {
+        overflow-y: scroll;
+    }
+}
+
 a {
     color: #551A8B;
 }
