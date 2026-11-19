@@ -181,12 +181,12 @@ nav a.active:visited {
 }
 
 #overlay .video-side-text.left {
-    right: calc(50% + 295px);
+    right: calc(var(--viewport-center-x, 50%) + 295px);
     text-align: left;
 }
 
 #overlay .video-side-text.right {
-    left: calc(50% + 295px);
+    left: calc(var(--viewport-center-x, 50%) + 295px);
     text-align: right;
 }
 

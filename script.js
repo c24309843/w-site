@@ -305,7 +305,7 @@ function showPage(page, link) {
 
         if (page === "o2") {
             overlay.innerHTML = `
-                <div class="video-side-text left">-------------------------------------------------------------</div>
+                <div class="video-side-text left">------------------------------------</div>
 
                 <iframe
                     src="https://www.youtube.com/embed/piMIPHVneOg?controls=0&modestbranding=1&rel=0"
@@ -315,7 +315,7 @@ function showPage(page, link) {
                     allowfullscreen>
                 </iframe>
 
-                <div class="video-side-text right">-------------------------------------------------------------</div>
+                <div class="video-side-text right">------------------------------------</div>
             `;
         }
 
