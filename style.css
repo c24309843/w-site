@@ -18,6 +18,8 @@ a:active {
 }
 
 
+/* main categories */
+
 /* main navigation */
 
 nav {
@@ -36,32 +38,7 @@ nav a.active:visited {
 }
 
 
-/* sub navigation */
-
-#sub-nav {
-    position: fixed;
-    top: 47px;
-    left: 50px;
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    z-index: 1000;
-}
-
-
-/* right side text */
-
-#right-text {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    gap: 25px;
-    z-index: 1000;
-}
-
-
-/* main content */
+/* prints */
 
 #content a {
     display: table;
@@ -84,6 +61,93 @@ nav a.active:visited {
     right: 150px;
     text-decoration: none;
 }
+
+/* print layout */
+
+.print-item {
+    display: flex;
+    align-items: flex-end;
+    gap: 30px;
+}
+
+.print-description {
+    margin-bottom: 100px;
+    margin-left: 20px;
+    color: #551A8B;
+    text-decoration: none;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: normal;
+}
+
+/* side images */
+
+#content .print-item {
+    position: relative;
+}
+
+#content .side-images {
+    position: absolute;
+    top: 210px;
+    left: 780px;
+}
+
+#content .side-images img {
+    width: 250px;
+    max-width: none;
+    height: auto;
+    margin: 0;
+}
+
+/* side image text */
+
+#content .side-image-text {
+    position: absolute;
+    top: 0;
+    left: 270px;
+    width: 200px;
+    color: #551A8B;
+}
+
+/* w */
+
+/* w image side text */
+
+.w-item {
+    display: flex;
+    align-items: flex-end;
+    gap: 30px;
+}
+
+.w-description {
+    margin-bottom: 100px;
+    margin-left: 20px;
+    color: #551A8B;
+    text-decoration: none;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: normal;
+}
+
+
+
+
+
+
+/* subcategories */
+
+#sub-nav {
+    position: fixed;
+    top: 47px;
+    left: 50px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    z-index: 1000;
+}
+
+
+/* o1 */
 
 
 /* o2 video */
@@ -111,12 +175,12 @@ nav a.active:visited {
 }
 
 #overlay .video-side-text.left {
-    left: 220px;
+    right: calc(50% + 295px);
     text-align: left;
 }
 
 #overlay .video-side-text.right {
-    right: 220px;
+    left: calc(50% + 295px);
     text-align: right;
 }
 
@@ -125,14 +189,7 @@ nav a.active:visited {
 }
 
 
-/* overlay */
-
-#overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 500;
-    cursor: pointer;
-}
+/* o3 */
 
 
 /* o4 text overlay */
@@ -147,7 +204,6 @@ nav a.active:visited {
     font-size: inherit;
     font-weight: normal;
 }
-
 
 /* o4 text positions */
 
@@ -173,23 +229,15 @@ nav a.active:visited {
     text-align: right;
 }
 
-/* print layout */
 
-.print-item {
-    display: flex;
-    align-items: flex-end;
-    gap: 30px;
-}
+/* o5 */
 
-.print-description {
-    margin-bottom: 100px;
-    margin-left: 20px;
-    color: #551A8B;
-    text-decoration: none;
-    font-family: inherit;
-    font-size: inherit;
-    font-weight: normal;
-}
+
+/* o6 */
+
+
+/* o7 */
+
 
 /* o8 center picture */
 
@@ -203,3 +251,96 @@ nav a.active:visited {
     max-height: 180px;
     object-fit: contain;
 }
+
+
+/* o9 tumblr post */
+
+#overlay .tumblr-embed {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 540px;
+    height: 700px;
+    border: none;
+    background: transparent;
+}
+
+/* o9 tumblr text */
+
+#overlay .tumblr-post-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 540px;
+    height: 700px;
+}
+
+#overlay .tumblr-embed {
+    display: block;
+    width: 540px;
+    height: 700px;
+    border: none;
+}
+
+/* link picture */
+
+#overlay .link-picture {
+    position: absolute;
+    inset: 0;
+    color: #551A8B;
+    z-index: 2;
+}
+
+#overlay .link-picture div {
+    position: absolute;
+    white-space: nowrap;
+}
+
+#overlay .line-1 {
+    top: 630px;
+    left: 475px;
+}
+
+#overlay .line-3 {
+    top: 110px;
+    left: -100px;
+}
+
+#overlay .line-4 {
+    top: 180px;
+    left: 80px;
+}
+
+#overlay .line-5 {
+    top: 660px;
+    left: 25px;
+}
+
+/* o10 */
+
+
+/* shared elements */
+
+/* right side text */
+
+#right-text {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 25px;
+    z-index: 1000;
+}
+
+
+/* overlay */
+
+#overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    cursor: pointer;
+}
+
