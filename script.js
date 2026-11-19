@@ -105,10 +105,10 @@ function showPage(page, link) {
             </div>
 
             <a id="print-text" href="#">
-                about the filthies, the knick knocks.<br>
+                abo--------------------------cks.<br>
                 gnow gnow gnow gnow.<br>
-                cock nigger bitch fuck<br>
-                nig boy we dont like cock fuck
+                coc.........................fuck<br>
+                nig-----------------------ck fuck
             </a>
         `;
         }
