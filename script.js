@@ -18,6 +18,31 @@ function syncMobileViewport() {
 
     document.documentElement.style.setProperty("--viewport-center-x", `${centerX}px`);
     document.documentElement.style.setProperty("--viewport-center-y", `${centerY}px`);
+
+    syncO2SideText();
+}
+
+function syncO2SideText() {
+    const player = document.querySelector("#overlay .o2-player");
+    const leftText = document.getElementById("video-side-text-left");
+    const rightText = document.getElementById("video-side-text-right");
+
+    if (!player || !leftText || !rightText) {
+        return;
+    }
+
+    const rect = player.getBoundingClientRect();
+    const centerY = rect.top + (rect.height / 2);
+
+    leftText.style.position = "fixed";
+    leftText.style.left = `${rect.left - 295}px`;
+    leftText.style.top = `${centerY}px`;
+    leftText.style.transform = "translateY(-50%)";
+
+    rightText.style.position = "fixed";
+    rightText.style.left = `${rect.right + 20}px`;
+    rightText.style.top = `${centerY}px`;
+    rightText.style.transform = "translateY(-50%)";
 }
 
 if (window.visualViewport) {
@@ -306,7 +331,7 @@ function showPage(page, link) {
         if (page === "o2") {
             overlay.innerHTML = `
                 <div class="o2-player">
-                    <div class="video-side-text left">------------------------------------</div>
+                    <div id="video-side-text-left" class="video-side-text left">------------------------------------</div>
 
                     <iframe
                         src="https://www.youtube.com/embed/piMIPHVneOg?controls=0&modestbranding=1&rel=0"
@@ -316,9 +341,10 @@ function showPage(page, link) {
                         allowfullscreen>
                     </iframe>
 
-                    <div class="video-side-text right">------------------------------------</div>
+                    <div id="video-side-text-right" class="video-side-text right">------------------------------------</div>
                 </div>
             `;
+            requestAnimationFrame(syncO2SideText);
         }
 
 

@@ -205,15 +205,15 @@ nav a.active:visited {
 }
 
 #overlay .video-side-text.left {
-    left: -295px !important;
+    left: -295px;
     width: 275px !important;
-    text-align: right !important;
+    text-align: right;
 }
 
 #overlay .video-side-text.right {
-    left: 570px !important;
+    left: 570px;
     width: 275px !important;
-    text-align: left !important;
+    text-align: left;
 }
 
 #overlay iframe {
