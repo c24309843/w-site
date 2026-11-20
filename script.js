@@ -356,7 +356,7 @@ function showPage(page, link) {
                 <div class="tiktok-post-container">
                     <iframe
                         class="tiktok-embed"
-                        src="https://www.tiktok.com/player/v1/7685288523800382734?embed_from=oembed&music_info=1&description=1&autoplay=1&muted=0"
+                        src="https://www.tiktok.com/player/v1/7685288523800382734?embed_from=oembed&music_info=1&description=1&autoplay=1&loop=1&muted=0&volume=100"
                         width="325"
                         height="578"
                         frameborder="0"
