@@ -35,6 +35,19 @@ jobs:
         with:
           source: ./
           destination: ./_site
+      - name: Add cache-busting asset versions
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          version = os.environ["GITHUB_SHA"]
+          for html_file in Path("_site").rglob("*.html"):
+              html = html_file.read_text(encoding="utf-8")
+              html = html.replace('href="style.css"', f'href="style.css?v={version}"')
+              html = html.replace('src="script.js"', f'src="script.js?v={version}"')
+              html_file.write_text(html, encoding="utf-8")
+          PY
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
 
