@@ -153,6 +153,26 @@ nav a.active:visited {
     z-index: 1000;
 }
 
+#bottom-sub-nav {
+    position: fixed;
+    top: auto;
+    bottom: 47px;
+    left: 50px;
+    display: none;
+    flex-direction: row;
+    gap: 10px;
+    z-index: 1000;
+}
+
+#bottom-sub-nav.visible {
+    display: flex;
+}
+
+#right-text a.active,
+#right-text a.active:visited {
+    color: red;
+}
+
 
 /* o1 */
 

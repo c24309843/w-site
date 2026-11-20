@@ -5,6 +5,7 @@ let currentPage = null;
 let currentOverlay = null;
 let activeMainLink = null;
 let activeSubLink = null;
+let activeBottomSubLink = null;
 const o5TextOptions = ["gnome ...", "yyyyyyyyyyyyyy", "chome."];
 
 function syncMobileViewport() {
@@ -85,55 +86,126 @@ function toggleO5Text(text) {
 }
 
 
+function renderVideoOverlay(overlay, videoId, videoHeight) {
+    overlay.innerHTML = `
+        <div class="video-side-text left">
+        ------------------------------------<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+        </div>
+
+        <iframe
+            src="https://www.youtube.com/embed/${videoId}?controls=0&modestbranding=1&rel=0"
+            width="550"
+            height="${videoHeight}"
+            allow="autoplay; encrypted-media"
+            allowfullscreen>
+        </iframe>
+
+        <div class="video-side-text right">
+        ------------------------------------<br>
+        o<br>
+        o<br>
+        o<br>
+        o<br>
+        </div>
+    `;
+}
+
+
+function toggleBottomSubNavigation(link) {
+    const subNav = document.getElementById("bottom-sub-nav");
+    const isOpen = subNav.classList.toggle("visible");
+
+    link.classList.toggle("active", isOpen);
+    link.setAttribute("aria-expanded", String(isOpen));
+
+    if (isOpen) {
+        fitSubNavigation();
+    } else if (activeBottomSubLink) {
+        activeBottomSubLink.classList.remove("active");
+        activeBottomSubLink = null;
+    }
+}
+
+
+function activateBottomSubLink(link) {
+    if (activeBottomSubLink === link) {
+        activeBottomSubLink.classList.remove("active");
+        activeBottomSubLink = null;
+        return;
+    }
+
+    if (activeBottomSubLink) {
+        activeBottomSubLink.classList.remove("active");
+    }
+
+    activeBottomSubLink = link;
+    activeBottomSubLink.classList.add("active");
+}
+
+
 function fitSubNavigation() {
-    const subNav = document.getElementById("sub-nav");
-
-    if (!subNav) {
-        return;
-    }
-
-    const links = Array.from(subNav.querySelectorAll("a"));
-
-    if (!links.length) {
-        return;
-    }
-
-    links.forEach((link) => {
-        if (link.dataset.originalMargin === undefined) {
-            link.dataset.originalMargin = window.parseFloat(link.style.marginLeft) || 0;
-        }
-
-        link.style.marginLeft = `${link.dataset.originalMargin}px`;
-    });
-
-    const subNavLeft = subNav.getBoundingClientRect().left;
+    const subNavs = document.querySelectorAll("#sub-nav, #bottom-sub-nav");
     const viewportWidth = window.visualViewport
         ? Math.min(window.innerWidth, window.visualViewport.width)
         : window.innerWidth;
-    const availableWidth = Math.max(0, viewportWidth - subNavLeft - 20);
-    const linksWidth = links.reduce(
-        (total, link) => total + link.getBoundingClientRect().width,
-        0
-    );
-    const gapsWidth = Math.max(0, links.length - 1) * 10;
-    const originalMarginsWidth = links.reduce(
-        (total, link) => total + window.parseFloat(link.dataset.originalMargin),
-        0
-    );
 
-    let fitFactor = 1;
-    const naturalWidth = linksWidth + originalMarginsWidth + gapsWidth;
+    subNavs.forEach((subNav) => {
+        if (window.getComputedStyle(subNav).display === "none") {
+            return;
+        }
 
-    if (naturalWidth > availableWidth) {
-        fitFactor = Math.max(
-            0,
-            (availableWidth - linksWidth - gapsWidth) / originalMarginsWidth
+        const links = Array.from(subNav.querySelectorAll("a"));
+
+        if (!links.length) {
+            return;
+        }
+
+        links.forEach((link) => {
+            if (link.dataset.originalMargin === undefined) {
+                link.dataset.originalMargin = window.parseFloat(link.style.marginLeft) || 0;
+            }
+
+            link.style.marginLeft = `${link.dataset.originalMargin}px`;
+        });
+
+        const subNavLeft = subNav.getBoundingClientRect().left;
+        const availableWidth = Math.max(0, viewportWidth - subNavLeft - 20);
+        const linksWidth = links.reduce(
+            (total, link) => total + link.getBoundingClientRect().width,
+            0
         );
-    }
+        const gapsWidth = Math.max(0, links.length - 1) * 10;
+        const originalMarginsWidth = links.reduce(
+            (total, link) => total + window.parseFloat(link.dataset.originalMargin),
+            0
+        );
 
-    links.forEach((link) => {
-        const originalMargin = window.parseFloat(link.dataset.originalMargin);
-        link.style.marginLeft = `${originalMargin * fitFactor}px`;
+        let fitFactor = 1;
+        const naturalWidth = linksWidth + originalMarginsWidth + gapsWidth;
+
+        if (naturalWidth > availableWidth) {
+            fitFactor = Math.max(
+                0,
+                (availableWidth - linksWidth - gapsWidth) / originalMarginsWidth
+            );
+        }
+
+        links.forEach((link) => {
+            const originalMargin = window.parseFloat(link.dataset.originalMargin);
+            link.style.marginLeft = `${originalMargin * fitFactor}px`;
+        });
     });
 }
 
@@ -359,39 +431,7 @@ function showPage(page, link) {
         /* o2 video */
 
         if (page === "o2") {
-            overlay.innerHTML = `
-                <div class="video-side-text left">
-                ------------------------------------<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
-                </div>
-
-                <iframe
-                    src="https://www.youtube.com/embed/piMIPHVneOg?controls=0&modestbranding=1&rel=0"
-                    width="550"
-                    height="415"
-                    allow="autoplay; encrypted-media"
-                    allowfullscreen>
-                </iframe>
-
-                <div class="video-side-text right">
-                ------------------------------------<br>
-                o<br>
-                o<br>
-                o<br>
-                o<br>
-                </div>
-            `;
+            renderVideoOverlay(overlay, "piMIPHVneOg", 415);
         }
 
 
@@ -476,8 +516,35 @@ function showPage(page, link) {
             });
         }
 
-        /* o6 */
+        /* o6 video */
 
+        if (page === "o6") {
+            overlay.innerHTML = `
+                <div class="video-side-text left">
+                --------oo-----------------------o--<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+                </div>
+
+                <iframe
+                    src="https://www.youtube.com/embed/pbecPw1fy8Q?controls=0&modestbranding=1&rel=0"
+                    width="550"
+                    height="309"
+                    allow="autoplay; encrypted-media"
+                    allowfullscreen>
+                </iframe>
+
+                <div class="video-side-text right">
+                -----------------------------oooo---<br>
+                o<br>
+                o<br>
+                </div>
+            `;
+        }
 
         /* o7 text */
 
