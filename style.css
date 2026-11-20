@@ -201,6 +201,58 @@ nav a.active:visited {
 
 /* o3 */
 
+#overlay .tiktok-post-container {
+    position: fixed;
+    top: var(--viewport-center-y, 50%);
+    left: var(--viewport-center-x, 50%);
+    transform: translate(-50%, -50%);
+    width: 325px;
+    height: 578px;
+}
+
+#overlay .tiktok-embed {
+    position: absolute !important;
+    inset: 0;
+    display: block;
+    width: 325px;
+    height: 578px;
+    border: none;
+    background: transparent;
+}
+
+#overlay .tiktok-text-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    color: #551A8B;
+    pointer-events: none;
+}
+
+#overlay .tiktok-text-overlay div {
+    position: absolute;
+    white-space: nowrap;
+}
+
+#overlay .tiktok-line-1 {
+    top: 520px;
+    left: 220px;
+}
+
+#overlay .tiktok-line-2 {
+    top: 95px;
+    left: -100px;
+}
+
+#overlay .tiktok-line-3 {
+    top: 155px;
+    left: 55px;
+}
+
+#overlay .tiktok-line-4 {
+    top: 545px;
+    left: 25px;
+}
+
 
 /* o4 text overlay */
 

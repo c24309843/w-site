@@ -351,6 +351,32 @@ function showPage(page, link) {
 
         /* o3 */
 
+        if (page === "o3") {
+            overlay.innerHTML = `
+                <div class="tiktok-post-container">
+                    <iframe
+                        class="tiktok-embed"
+                        src="https://www.tiktok.com/player/v1/7685288523800382734?embed_from=oembed&music_info=1&description=1&autoplay=1&muted=0"
+                        width="325"
+                        height="578"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen>
+                    </iframe>
+
+                    <div class="tiktok-text-overlay">
+                        <div class="tiktok-line-1">o o o o<br>
+                        o o o o<br>
+                        o o o o</div>
+
+                        <div class="tiktok-line-2">ooooooooooooooooooooooooooooooooooooooooooo</div>
+                        <div class="tiktok-line-3">o o o o o o o o o o o o o o o o o</div>
+                        <div class="tiktok-line-4">༽( ҉ ᵔ ͜ ᵕ ࿓ ͜ ᵔ ҈ )༼------------------------------------------------------------------------------------------------------</div>
+                    </div>
+                </div>
+            `;
+        }
+
 
         /* o4 text */
 
