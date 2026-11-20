@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+</head>
+<body>
+<script>
+    const requestedPath = window.location.pathname + window.location.search + window.location.hash;
+    const path = window.location.pathname.replace(/\/+$/, "");
+    const basePath = path.slice(0, path.lastIndexOf("/") + 1) || "/";
+    window.location.replace(`${basePath}?__route=${encodeURIComponent(requestedPath)}`);
+</script>
+</body>
+</html>

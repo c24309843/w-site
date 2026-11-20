@@ -391,6 +391,36 @@ nav .nav-static {
     border: none;
 }
 
+/* o13 Twitch video */
+
+#overlay .twitch-post-container {
+    position: fixed !important;
+    top: var(--viewport-center-y, 50%) !important;
+    left: var(--viewport-center-x, 50%) !important;
+    transform: translate(-50%, -50%) !important;
+    width: 540px;
+    height: 700px;
+}
+
+#overlay .twitch-embed {
+    position: absolute !important;
+    top: 198px !important;
+    left: 0 !important;
+    transform: none !important;
+    width: 540px;
+    height: 304px;
+}
+
+#overlay .twitch-embed iframe {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    border: none;
+}
+
 /* link picture */
 
 #overlay .link-picture {

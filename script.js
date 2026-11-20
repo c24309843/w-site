@@ -6,6 +6,8 @@ let currentOverlay = null;
 let activeMainLink = null;
 let activeSubLink = null;
 let activeBottomSubLink = null;
+let twitchPlayerLoader = null;
+const appBasePath = new URL(".", document.currentScript.src).pathname;
 const o5TextOptions = ["gnome ...", "yyyyyyyyyyyyyy", "chome."];
 
 function syncMobileViewport() {
@@ -123,6 +125,57 @@ function renderVideoOverlay(overlay, videoId, videoHeight) {
 }
 
 
+function loadTwitchPlayerApi() {
+    if (window.Twitch && window.Twitch.Player) {
+        return Promise.resolve();
+    }
+
+    if (!twitchPlayerLoader) {
+        twitchPlayerLoader = new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = "https://player.twitch.tv/js/embed/v1.js";
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = () => {
+                twitchPlayerLoader = null;
+                reject(new Error("Failed to load the Twitch player API."));
+            };
+            document.head.appendChild(script);
+        });
+    }
+
+    return twitchPlayerLoader;
+}
+
+
+function initializeTwitchPlayer() {
+    loadTwitchPlayerApi()
+        .then(() => {
+            const playerContainer = document.getElementById("twitch-embed");
+
+            if (!playerContainer || playerContainer.dataset.initialized === "true") {
+                return;
+            }
+
+            if (!window.Twitch || !window.Twitch.Player) {
+                throw new Error("The Twitch player API loaded without exposing Twitch.Player.");
+            }
+
+            playerContainer.dataset.initialized = "true";
+            new window.Twitch.Player("twitch-embed", {
+                video: "1485854791",
+                width: 540,
+                height: 304,
+                parent: ["c24309843.github.io"],
+                autoplay: false
+            });
+        })
+        .catch((error) => {
+            console.error("Could not initialize the Twitch player:", error);
+        });
+}
+
+
 function toggleBottomSubNavigation(link) {
     const subNav = document.getElementById("bottom-sub-nav");
     const isOpen = subNav.classList.toggle("visible");
@@ -209,6 +262,98 @@ function fitSubNavigation() {
     });
 }
 
+
+function updatePageUrl(page, replace = false) {
+    if (window.location.protocol === "file:") {
+        return;
+    }
+
+    const path = `${appBasePath}${page || ""}`;
+
+    if (window.location.pathname === path) {
+        return;
+    }
+
+    const state = { page: page || null };
+    if (replace) {
+        window.history.replaceState(state, "", path);
+    } else {
+        window.history.pushState(state, "", path);
+    }
+}
+
+
+function getPageFromUrl() {
+    if (!window.location.pathname.startsWith(appBasePath)) {
+        return "";
+    }
+
+    return window.location.pathname.slice(appBasePath.length).split("/")[0];
+}
+
+
+function findPageLink(page) {
+    return Array.from(document.querySelectorAll("a[onclick]")).find((link) => {
+        const handler = link.getAttribute("onclick") || "";
+        return handler.includes(`showPage('${page}', this)`);
+    });
+}
+
+
+function clearPageState() {
+    document.getElementById("overlay")?.remove();
+    document.getElementById("content").innerHTML = "";
+
+    if (activeMainLink) {
+        activeMainLink.classList.remove("active");
+        activeMainLink = null;
+    }
+    if (activeSubLink) {
+        activeSubLink.classList.remove("active");
+        activeSubLink = null;
+    }
+    if (activeBottomSubLink) {
+        activeBottomSubLink.classList.remove("active");
+        activeBottomSubLink = null;
+    }
+
+    currentPage = null;
+    currentOverlay = null;
+}
+
+
+function restorePageFromUrl() {
+    const page = getPageFromUrl();
+    const link = page ? findPageLink(page) : null;
+
+    clearPageState();
+
+    if (!page) {
+        return;
+    }
+
+    if (!link) {
+        updatePageUrl(null, true);
+        return;
+    }
+
+    const bottomSubNav = document.getElementById("bottom-sub-nav");
+    const toggleLink = document.querySelector(
+        '#right-text a[aria-controls="bottom-sub-nav"]'
+    );
+    const showBottomSubNav = page === "o13";
+    bottomSubNav.classList.toggle("visible", showBottomSubNav);
+    toggleLink.classList.toggle("active", showBottomSubNav);
+    toggleLink.setAttribute("aria-expanded", String(showBottomSubNav));
+
+    if (showBottomSubNav) {
+        fitSubNavigation();
+    }
+
+    showPage(page, link, false);
+}
+
+
 window.addEventListener("resize", fitSubNavigation);
 window.addEventListener("orientationchange", fitSubNavigation);
 
@@ -221,13 +366,13 @@ if (document.readyState === "loading") {
 
 /* page navigation */
 
-function showPage(page, link) {
+function showPage(page, link, updateUrl = true) {
     const content = document.getElementById("content");
     let overlay = document.getElementById("overlay");
 
     const overlayPages = [
         "o1", "o2", "o3", "o4", "o5",
-        "o6", "o7", "o8", "o9", "o10"
+        "o6", "o7", "o8", "o9", "o10", "o13"
     ];
 
 
@@ -242,6 +387,10 @@ function showPage(page, link) {
             activeSubLink.classList.remove("active");
             activeSubLink = null;
         }
+        if (activeBottomSubLink) {
+            activeBottomSubLink.classList.remove("active");
+            activeBottomSubLink = null;
+        }
 
         // clicking the active main category closes it
         if (currentPage === page) {
@@ -251,6 +400,9 @@ function showPage(page, link) {
             if (activeMainLink) {
                 activeMainLink.classList.remove("active");
                 activeMainLink = null;
+            }
+            if (updateUrl) {
+                updatePageUrl(null);
             }
             return;
         }
@@ -264,6 +416,9 @@ function showPage(page, link) {
         activeMainLink.classList.add("active");
 
         currentPage = page;
+        if (updateUrl) {
+            updatePageUrl(page);
+        }
 
 
         /* prints */
@@ -391,12 +546,20 @@ function showPage(page, link) {
                 activeSubLink.classList.remove("active");
                 activeSubLink = null;
             }
+            if (updateUrl) {
+                updatePageUrl(currentPage);
+            }
             return;
         }
 
         // remove previous sub-menu active colour
         if (activeSubLink) {
             activeSubLink.classList.remove("active");
+        }
+
+        if (activeBottomSubLink) {
+            activeBottomSubLink.classList.remove("active");
+            activeBottomSubLink = null;
         }
 
         activeSubLink = link;
@@ -415,6 +578,7 @@ function showPage(page, link) {
                         activeSubLink.classList.remove("active");
                         activeSubLink = null;
                     }
+                    updatePageUrl(currentPage);
                 }
             });
 
@@ -423,6 +587,9 @@ function showPage(page, link) {
 
         overlay.innerHTML = "";
         currentOverlay = page;
+        if (updateUrl) {
+            updatePageUrl(page);
+        }
 
 
         /* o1 */
@@ -641,9 +808,47 @@ function showPage(page, link) {
             `;
         }
 
+        /* o13 Twitch video */
+
+        if (page === "o13") {
+            overlay.innerHTML = `
+                <div class="twitch-post-container">
+                    <div id="twitch-embed" class="twitch-embed"></div>
+                </div>
+
+                <div class="video-side-text left">
+                --------oo-----------------------o--<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o<br>
+                </div>
+
+                <div class="video-side-text right">
+                -----------------------------oooo---<br>
+                o<br>
+                o<br>
+                </div>
+            `;
+            initializeTwitchPlayer();
+        }
+
 
         /* o10 */
 
         return;
     }
+}
+
+
+const requestedPath = new URLSearchParams(window.location.search).get("__route");
+if (requestedPath && requestedPath.startsWith(appBasePath)) {
+    window.history.replaceState(null, "", requestedPath);
+}
+
+window.addEventListener("popstate", restorePageFromUrl);
+if (getPageFromUrl()) {
+    restorePageFromUrl();
 }
