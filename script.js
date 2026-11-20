@@ -39,6 +39,48 @@ window.addEventListener("scroll", syncMobileViewport, { passive: true });
 syncMobileViewport();
 
 
+function togglePrintText(link) {
+    if (!link.dataset.altText) {
+        link.dataset.originalText = link.innerHTML;
+        link.dataset.altText = `
+                oooooooo------------cks.<br>
+                ooooooooooooooonow.<br>
+                coc..ooooooooooooook<br>
+                oooooooooo-------ck fuck`;
+        link.dataset.thirdText = `
+                yyyyyyyyyyyyyy------cks.<br>
+                yyyyyyyyyyyyyyyyyyyyw.<br>
+                cyyyyyyyyyyyyyyyyyyyyk<br>
+                yyyyyyyyyyyyyyyyyyyck fuck`;
+    }
+
+    if (link.dataset.leftEdge === undefined) {
+        link.style.left = `${link.getBoundingClientRect().left}px`;
+        link.style.right = "auto";
+        link.dataset.leftEdge = "locked";
+    }
+
+    const textOptions = [
+        link.dataset.originalText,
+        link.dataset.altText,
+        link.dataset.thirdText
+    ];
+    const currentIndex = Number(link.dataset.graphIndex || 0);
+    const nextIndex = (currentIndex + 1) % textOptions.length;
+    link.innerHTML = textOptions[nextIndex];
+    link.dataset.graphIndex = String(nextIndex);
+}
+
+
+function toggleO5Text(text) {
+    const textOptions = ["gnome ...", "yyyyyyyyyyyyyy", "chome."];
+    const currentIndex = Number(text.dataset.graphIndex || 0);
+    const nextIndex = (currentIndex + 1) % textOptions.length;
+    text.textContent = textOptions[nextIndex];
+    text.dataset.graphIndex = String(nextIndex);
+}
+
+
 function fitSubNavigation() {
     const subNav = document.getElementById("sub-nav");
 
@@ -198,7 +240,7 @@ function showPage(page, link) {
                 </div>
             </div>
 
-            <a id="print-text" href="#">
+            <a id="print-text" href="#" onclick="togglePrintText(this); return false;">
                 abo--------------------------cks.<br>
                 gnow gnow gnow gnow.<br>
                 coc.........................fuck<br>
@@ -417,8 +459,16 @@ function showPage(page, link) {
         }
 
 
-        /* o5 */
+        /* o5 text */
 
+        if (page === "o5") {
+            overlay.innerHTML = `
+                <div class="o5-text" data-graph-index="0">gnome ...</div>
+            `;
+            overlay.querySelector(".o5-text").addEventListener("click", function() {
+                toggleO5Text(this);
+            });
+        }
 
         /* o6 */
 
