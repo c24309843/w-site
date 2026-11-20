@@ -43,6 +43,12 @@ nav a.active:visited {
     color: red;
 }
 
+nav .nav-static {
+    color: #551A8B;
+    text-decoration: none;
+    cursor: default;
+}
+
 
 /* prints */
 
