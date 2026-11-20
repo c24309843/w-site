@@ -302,10 +302,10 @@ nav a.active:visited {
     top: var(--viewport-center-y, 50%);
     left: var(--viewport-center-x, 50%);
     transform: translate(-50%, -50%);
-    width: 300px;
+    width: max-content;
     color: #551A8B;
     text-align: left;
-    white-space: nowrap;
+    white-space: pre;
     cursor: pointer;
 }
 

@@ -5,6 +5,7 @@ let currentPage = null;
 let currentOverlay = null;
 let activeMainLink = null;
 let activeSubLink = null;
+const o5TextOptions = ["gnome ...", "yyyyyyyyyyyyyy", "chome."];
 
 function syncMobileViewport() {
     const viewport = window.visualViewport;
@@ -72,12 +73,15 @@ function togglePrintText(link) {
 }
 
 
+function renderO5Text(text, index) {
+    text.textContent = `${o5TextOptions[index]}\n${":".repeat(60)}`;
+    text.dataset.graphIndex = String(index);
+}
+
+
 function toggleO5Text(text) {
-    const textOptions = ["gnome ...", "yyyyyyyyyyyyyy", "chome."];
     const currentIndex = Number(text.dataset.graphIndex || 0);
-    const nextIndex = (currentIndex + 1) % textOptions.length;
-    text.textContent = textOptions[nextIndex];
-    text.dataset.graphIndex = String(nextIndex);
+    renderO5Text(text, (currentIndex + 1) % o5TextOptions.length);
 }
 
 
@@ -463,9 +467,11 @@ function showPage(page, link) {
 
         if (page === "o5") {
             overlay.innerHTML = `
-                <div class="o5-text" data-graph-index="0">gnome ...</div>
+                <div class="o5-text"></div>
             `;
-            overlay.querySelector(".o5-text").addEventListener("click", function() {
+            const o5Text = overlay.querySelector(".o5-text");
+            renderO5Text(o5Text, 0);
+            o5Text.addEventListener("click", function() {
                 toggleO5Text(this);
             });
         }
