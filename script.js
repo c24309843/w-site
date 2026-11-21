@@ -163,7 +163,7 @@ function initializeTwitchPlayer() {
 
             playerContainer.dataset.initialized = "true";
             new window.Twitch.Player("twitch-embed", {
-                video: "1485854791",
+                video: "1127190974",
                 width: 540,
                 height: 304,
                 parent: ["c24309843.github.io"],
@@ -421,9 +421,9 @@ function showPage(page, link, updateUrl = true) {
         }
 
 
-        /* prints */
+        /* prints (sd) */
 
-        if (page === "prints") {
+        if (page === "sd") {
             content.innerHTML = `
 <div class="print-item">
     <a href="pic/print/Scan_20260119 (2).jpg" target="_blank">
