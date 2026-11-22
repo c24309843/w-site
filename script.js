@@ -515,6 +515,13 @@ function showPage(page, link, updateUrl = true) {
         }
 
 
+        /* flower-press */
+
+        if (page === "flower-press") {
+            content.innerHTML = "";
+        }
+
+
         /* links */
 
         if (page === "links") {
