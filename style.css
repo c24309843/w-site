@@ -39,7 +39,9 @@ nav {
 }
 
 nav a.active,
-nav a.active:visited {
+nav a.active:visited,
+#right-text a.active,
+#right-text a.active:visited {
     color: red;
 }
 
@@ -170,7 +172,7 @@ nav .nav-static {
     z-index: 1000;
 }
 
-#right-text span {
+#right-text a {
     color: #551A8B;
 }
 
@@ -186,8 +188,9 @@ nav .nav-static {
     font: inherit;
     font-family: monospace;
     line-height: normal;
-    text-align: left;
+    text-align: center;
     white-space: pre;
+    width: max-content;
     cursor: pointer;
 }
 

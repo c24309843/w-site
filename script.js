@@ -10,8 +10,8 @@ let twitchPlayerLoader = null;
 const appBasePath = new URL(".", document.currentScript.src).pathname;
 const o5TextOptions = ["gnome ...", "yyyyyyyyyyyyyy", "chome."];
 const o18GraphOptions = [
-    "<<<ooo>>>\n   o:o    \n    oo    \n <<<o:o>>>\n    o:o   \n    o:o   \n    o o   \n    o o   \n    o o   ",
-    "<<<ooo>>>\n   o:o    \n    oo    \n <<<o:o>>>\n    o:o   \n    o:o   \n   o  o   \n  o   o   \n o     o"
+    "<<<ooo>>>\n   o:o    \n    oo    \n<<<o:o>>>\n    o:o   \n    o:o   \n    o o   \n    o o   \n    o o   ",
+    "<<<ooo>>>\n   o:o    \n    oo    \n<<<o:o>>>\n    o:o   \n    o:o   \n   o  o   \n  o   o   \n o     o"
 ];
 
 function syncMobileViewport() {
@@ -90,11 +90,27 @@ function toggleO5Text(text) {
 }
 
 
+function renderO18Graph(graph, index, steps) {
+    const lines = o18GraphOptions[index].split("\n");
+    const extraArrows = Math.floor(steps / 10);
+
+    [0, 3].forEach((lineIndex) => {
+        const indent = lines[lineIndex].match(/^\s*/)[0];
+        const line = lines[lineIndex].slice(indent.length);
+        lines[lineIndex] = `${indent}${"<".repeat(extraArrows)}${line}${">".repeat(extraArrows)}`;
+    });
+
+    graph.textContent = lines.join("\n");
+    graph.dataset.graphIndex = String(index);
+    graph.dataset.stepCount = String(steps);
+}
+
+
 function toggleO18Graph(graph) {
     const currentIndex = Number(graph.dataset.graphIndex || 0);
+    const steps = Number(graph.dataset.stepCount || 0) + 1;
     const nextIndex = (currentIndex + 1) % o18GraphOptions.length;
-    graph.textContent = o18GraphOptions[nextIndex];
-    graph.dataset.graphIndex = String(nextIndex);
+    renderO18Graph(graph, nextIndex, steps);
     graph.style.right = `${Number.parseFloat(getComputedStyle(graph).right) + 10}px`;
     graph.classList.remove("flash-red");
     void graph.offsetWidth;
@@ -267,13 +283,9 @@ function updatePageUrl(page, replace = false) {
     }
 
     const url = new URL(window.location.href);
-    url.pathname = appBasePath;
-    url.searchParams.delete("__route");
-    if (page) {
-        url.searchParams.set("page", page);
-    } else {
-        url.searchParams.delete("page");
-    }
+    url.pathname = page ? `${appBasePath}${encodeURIComponent(page)}` : appBasePath;
+    url.search = "";
+    url.hash = "";
 
     if (window.location.href === url.href) {
         return;
@@ -335,6 +347,7 @@ function clearPageState() {
 function restorePageFromUrl() {
     const page = getPageFromUrl();
     const link = page ? findPageLink(page) : null;
+    const hasLegacyPageQuery = new URLSearchParams(window.location.search).has("page");
 
     clearPageState();
 
@@ -349,6 +362,9 @@ function restorePageFromUrl() {
 
     fitSubNavigation();
     showPage(page, link, false);
+    if (hasLegacyPageQuery) {
+        updatePageUrl(page, true);
+    }
 }
 
 
@@ -814,8 +830,7 @@ function showPage(page, link, updateUrl = true) {
                 <button type="button" class="o18-graph" aria-label="Switch text graph"></button>
             `;
             const graph = overlay.querySelector(".o18-graph");
-            graph.textContent = o18GraphOptions[0];
-            graph.dataset.graphIndex = "0";
+            renderO18Graph(graph, 0, 0);
             graph.addEventListener("click", function() {
                 toggleO18Graph(this);
             });
