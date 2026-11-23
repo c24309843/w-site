@@ -9,6 +9,10 @@ let activeBottomSubLink = null;
 let twitchPlayerLoader = null;
 const appBasePath = new URL(".", document.currentScript.src).pathname;
 const o5TextOptions = ["gnome ...", "yyyyyyyyyyyyyy", "chome."];
+const o18GraphOptions = [
+    "<<<ooo>>>\n   o:o    \n    oo    \n <<<o:o>>>\n    o:o   \n    o:o   \n    o o   \n    o o   \n    o o   ",
+    "<<<ooo>>>\n   o:o    \n    oo    \n <<<o:o>>>\n    o:o   \n    o:o   \n   o  o   \n  o   o   \n o     o"
+];
 
 function syncMobileViewport() {
     const viewport = window.visualViewport;
@@ -44,24 +48,22 @@ syncMobileViewport();
 
 
 function togglePrintText(link) {
-    if (!link.dataset.altText) {
+    if (link.dataset.originalText === undefined) {
         link.dataset.originalText = link.innerHTML;
+    }
+    if (link.dataset.altText === undefined) {
         link.dataset.altText = `
                 oooooooo------------cks.<br>
                 ooooooooooooooonow.<br>
                 coc..ooooooooooooook<br>
                 oooooooooo-------ck fuck`;
+    }
+    if (link.dataset.thirdText === undefined) {
         link.dataset.thirdText = `
                 yyyyyyyyyyyyyy------cks.<br>
                 yyyyyyyyyyyyyyyyyyyyw.<br>
                 cyyyyyyyyyyyyyyyyyyyyk<br>
                 yyyyyyyyyyyyyyyyyyyck fuck`;
-    }
-
-    if (link.dataset.leftEdge === undefined) {
-        link.style.left = `${link.getBoundingClientRect().left}px`;
-        link.style.right = "auto";
-        link.dataset.leftEdge = "locked";
     }
 
     const textOptions = [
@@ -85,6 +87,18 @@ function renderO5Text(text, index) {
 function toggleO5Text(text) {
     const currentIndex = Number(text.dataset.graphIndex || 0);
     renderO5Text(text, (currentIndex + 1) % o5TextOptions.length);
+}
+
+
+function toggleO18Graph(graph) {
+    const currentIndex = Number(graph.dataset.graphIndex || 0);
+    const nextIndex = (currentIndex + 1) % o18GraphOptions.length;
+    graph.textContent = o18GraphOptions[nextIndex];
+    graph.dataset.graphIndex = String(nextIndex);
+    graph.style.right = `${Number.parseFloat(getComputedStyle(graph).right) + 10}px`;
+    graph.classList.remove("flash-red");
+    void graph.offsetWidth;
+    graph.classList.add("flash-red");
 }
 
 
@@ -176,22 +190,6 @@ function initializeTwitchPlayer() {
 }
 
 
-function toggleBottomSubNavigation(link) {
-    const subNav = document.getElementById("bottom-sub-nav");
-    const isOpen = subNav.classList.toggle("visible");
-
-    link.classList.toggle("active", isOpen);
-    link.setAttribute("aria-expanded", String(isOpen));
-
-    if (isOpen) {
-        fitSubNavigation();
-    } else if (activeBottomSubLink) {
-        activeBottomSubLink.classList.remove("active");
-        activeBottomSubLink = null;
-    }
-}
-
-
 function activateBottomSubLink(link) {
     if (activeBottomSubLink === link) {
         activeBottomSubLink.classList.remove("active");
@@ -268,17 +266,24 @@ function updatePageUrl(page, replace = false) {
         return;
     }
 
-    const path = `${appBasePath}${page || ""}`;
+    const url = new URL(window.location.href);
+    url.pathname = appBasePath;
+    url.searchParams.delete("__route");
+    if (page) {
+        url.searchParams.set("page", page);
+    } else {
+        url.searchParams.delete("page");
+    }
 
-    if (window.location.pathname === path) {
+    if (window.location.href === url.href) {
         return;
     }
 
     const state = { page: page || null };
     if (replace) {
-        window.history.replaceState(state, "", path);
+        window.history.replaceState(state, "", url);
     } else {
-        window.history.pushState(state, "", path);
+        window.history.pushState(state, "", url);
     }
 }
 
@@ -286,6 +291,11 @@ function updatePageUrl(page, replace = false) {
 function getPageFromUrl() {
     if (!window.location.pathname.startsWith(appBasePath)) {
         return "";
+    }
+
+    const queryPage = new URLSearchParams(window.location.search).get("page");
+    if (queryPage) {
+        return queryPage;
     }
 
     return window.location.pathname.slice(appBasePath.length).split("/")[0];
@@ -337,19 +347,7 @@ function restorePageFromUrl() {
         return;
     }
 
-    const bottomSubNav = document.getElementById("bottom-sub-nav");
-    const toggleLink = document.querySelector(
-        '#right-text a[aria-controls="bottom-sub-nav"]'
-    );
-    const showBottomSubNav = page === "o13";
-    bottomSubNav.classList.toggle("visible", showBottomSubNav);
-    toggleLink.classList.toggle("active", showBottomSubNav);
-    toggleLink.setAttribute("aria-expanded", String(showBottomSubNav));
-
-    if (showBottomSubNav) {
-        fitSubNavigation();
-    }
-
+    fitSubNavigation();
     showPage(page, link, false);
 }
 
@@ -372,7 +370,7 @@ function showPage(page, link, updateUrl = true) {
 
     const overlayPages = [
         "o1", "o2", "o3", "o4", "o5",
-        "o6", "o7", "o8", "o9", "o10", "o13"
+        "o6", "o7", "o8", "o9", "o10", "o13", "o18"
     ];
 
 
@@ -471,7 +469,7 @@ function showPage(page, link, updateUrl = true) {
                 </div>
             </div>
 
-            <a id="print-text" href="#" onclick="togglePrintText(this); return false;">
+            <a id="print-text" class="graph-text" href="#" onclick="togglePrintText(this); return false;">
                 abo--------------------------cks.<br>
                 gnow gnow gnow gnow.<br>
                 coc.........................fuck<br>
@@ -518,6 +516,30 @@ function showPage(page, link, updateUrl = true) {
         /* flower-press */
 
         if (page === "flower-press") {
+            content.innerHTML = `
+            <a id="flower-press-text" class="graph-text" href="#" onclick="togglePrintText(this); return false;"
+                data-alt-text="
+                    ----------sdfsdfsdff--------.<br>
+                    ------sdfdsfsdfdsf------------.<br>
+                    --------sdfsdffds----------<br>
+                    ----------sdfsdfsdfsdf--------"
+                data-third-text="
+                    yysdfsdfdsf------yyyyyyyyyyy------cks.<br>
+                    yyyyyysdfsdfsdf---------------yyyyyyyyyyyw.<br>
+                    cyyyyyysdfdsfsfd---------------yyyyyyyyyyyyk<br>
+                    yyyyyyyysdfdsf---------------yyyyyyyyyck fuck">
+                :::::::::::::::::::::::::::: <br>
+                ::::::::::::::::::::::::::::<br>
+                ::::::::::::::::::::::::::::fuck<br>
+                ::::::::::::::::::::::::::::
+            </a>
+        `;
+        }
+
+
+        /* side-mirror */
+
+        if (page === "side-mirror") {
             content.innerHTML = "";
         }
 
@@ -783,6 +805,20 @@ function showPage(page, link, updateUrl = true) {
             overlay.innerHTML = `
                 <img src="pic/rnd/20260207_144703.png" width="974" height="532" class="center-picture">
             `;
+        }
+
+        /* o18 text graphs */
+
+        if (page === "o18") {
+            overlay.innerHTML = `
+                <button type="button" class="o18-graph" aria-label="Switch text graph"></button>
+            `;
+            const graph = overlay.querySelector(".o18-graph");
+            graph.textContent = o18GraphOptions[0];
+            graph.dataset.graphIndex = "0";
+            graph.addEventListener("click", function() {
+                toggleO18Graph(this);
+            });
         }
 
 

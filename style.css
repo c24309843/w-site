@@ -67,7 +67,7 @@ nav .nav-static {
     margin-bottom: 40px;
 }
 
-#print-text {
+.graph-text {
     position: fixed;
     top: 120px;
     right: 150px;
@@ -164,18 +164,48 @@ nav .nav-static {
     top: auto;
     bottom: 47px;
     left: 50px;
-    display: none;
+    display: flex;
     flex-direction: row;
     gap: 10px;
     z-index: 1000;
 }
 
-#bottom-sub-nav.visible {
-    display: flex;
+#right-text span {
+    color: #551A8B;
 }
 
-#right-text a.active,
-#right-text a.active:visited {
+#overlay .o18-graph {
+    position: fixed;
+    right: 30px;
+    bottom: 90px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #551A8B;
+    font: inherit;
+    font-family: monospace;
+    line-height: normal;
+    text-align: left;
+    white-space: pre;
+    cursor: pointer;
+}
+
+@keyframes o18-graph-flash {
+    0%, 100% {
+        color: #551A8B;
+    }
+
+    25%, 75% {
+        color: red;
+    }
+}
+
+#overlay .o18-graph.flash-red {
+    animation: o18-graph-flash 600ms ease-in-out 2;
+}
+
+#overlay .o18-graph:active {
     color: red;
 }
 
@@ -358,7 +388,6 @@ nav .nav-static {
     max-height: 180px;
     object-fit: contain;
 }
-
 
 /* o9 tumblr post */
 
