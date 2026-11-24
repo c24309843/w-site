@@ -158,7 +158,7 @@ nav .nav-static {
 #bottom-sub-nav {
     --bottom-nav-gap: 47px;
     position: fixed;
-    top: calc(var(--viewport-bottom, 100vh) - var(--bottom-nav-gap) - env(safe-area-inset-bottom, 0px));
+    top: calc(var(--viewport-height, 100vh) - var(--bottom-nav-gap) - env(safe-area-inset-bottom, 0px));
     bottom: auto;
     left: 50px;
     display: flex;

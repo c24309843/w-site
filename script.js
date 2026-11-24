@@ -491,7 +491,9 @@ function restorePageFromUrl() {
             return;
         }
 
-        showPrintSubcategory(printSubcategory, subLink, false);
+        if (activePrintSubLink !== subLink) {
+            showPrintSubcategory(printSubcategory, subLink, false);
+        }
     }
 
     if (hasLegacyPageQuery) {
@@ -569,7 +571,7 @@ function showPage(page, link, updateUrl = true) {
         currentPage = page;
         document.getElementById("print-sub-nav").hidden = page !== "sd";
         if (updateUrl) {
-            updatePageUrl(page);
+            updatePageUrl(page === "sd" ? "sd/lohne" : page);
         }
 
 
@@ -577,6 +579,7 @@ function showPage(page, link, updateUrl = true) {
 
         if (page === "sd") {
             content.innerHTML = "";
+            showPrintSubcategory("lohne", document.getElementById("print-lohne"), false);
         }
 
 
