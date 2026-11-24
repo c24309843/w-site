@@ -166,18 +166,6 @@ nav .nav-static {
     z-index: 1000;
 }
 
-@media (max-width: 980px) {
-    #bottom-sub-nav {
-        bottom: calc(15px + env(safe-area-inset-bottom, 0px));
-    }
-
-    @supports (height: 100dvh) {
-        #bottom-sub-nav {
-            bottom: calc(100vh - 100dvh + 15px + env(safe-area-inset-bottom, 0px));
-        }
-    }
-}
-
 #right-text a {
     color: #551A8B;
 }
