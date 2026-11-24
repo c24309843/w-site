@@ -163,6 +163,18 @@ function duplicateImageDescription(description) {
     descriptions.forEach((text) => text.classList.add("flash-red"));
 }
 
+function renderImageDescription() {
+    return `
+<button type="button" class="image-description" onclick="duplicateImageDescription(this)">
+    :::::<br>
+    :::::<br>
+    :::::<br>
+    :::::<br>
+    :::::<br>
+    <span class="image-description-last-line">:::::</span>
+</button>`;
+}
+
 
 function renderLohneContent() {
     const printImage = (filename) =>
@@ -173,46 +185,21 @@ function renderLohneContent() {
     <a href="${printImage("Scan_20260119 (2).jpg")}" target="_blank">
         <img src="${printImage("Scan_20260119 (2).jpg")}" width="1251" height="1807">
     </a>
-
-    <button type="button" class="image-description" onclick="duplicateImageDescription(this)">
-        :::::<br>
-        :::::<br>
-        :::::<br>
-        :::::<br>
-        :::::<br>
-        <span class="image-description-last-line">:::::</span>
-    </button>
-
+    ${renderImageDescription()}
 </div>
 
 <div class="print-item">
     <a href="${printImage("Scan_20260119.jpg")}" target="_blank">
         <img src="${printImage("Scan_20260119.jpg")}" width="3327" height="2125">
     </a>
-
-    <button type="button" class="image-description" onclick="duplicateImageDescription(this)">
-        :::::<br>
-        :::::<br>
-        :::::<br>
-        :::::<br>
-        :::::<br>
-        <span class="image-description-last-line">:::::</span><br>
-    </button>
+    ${renderImageDescription()}
 </div>
 
 <div class="print-item">
     <a href="${printImage("Scan_20260119 (20).jpg")}" target="_blank">
         <img src="${printImage("Scan_20260119 (20).jpg")}" width="3252" height="2112">
     </a>
-
-    <button type="button" class="image-description" onclick="duplicateImageDescription(this)">
-        :::::<br>
-        :::::<br>
-        :::::<br>
-        :::::<br>
-        :::::<br>
-        <span class="image-description-last-line">:::::</span>
-    </button>
+    ${renderImageDescription()}
 </div>
 
 <a id="print-text" class="graph-text" href="#" onclick="togglePrintText(this); return false;">
@@ -242,17 +229,28 @@ function renderMirrorContent() {
     <a href="${image}" target="_blank">
         <img src="${image}" width="600">
     </a>
-
-    <button type="button" class="image-description" onclick="duplicateImageDescription(this)">
-        :::::<br>
-        :::::<br>
-        :::::<br>
-        :::::<br>
-        :::::<br>
-        <span class="image-description-last-line">:::::</span>
-    </button>
+    ${renderImageDescription()}
 </div>`;
     }).join("");
+}
+
+function renderWContent() {
+    const wImages = [
+        "20250518_195425.jpg",
+        "20240509_234712.jpg",
+        "20240605_013611.jpg",
+        "20240605_014712.jpg",
+        "20250329_001636.jpg",
+        "P1322318 (1).JPG"
+    ];
+    const wImage = (filename) =>
+        `${appBasePath}pic/w/${encodeURIComponent(filename)}`;
+
+    return wImages.map((filename) => `
+<div class="w-item">
+    <img src="${wImage(filename)}" width="600">
+    ${renderImageDescription()}
+</div>`).join("");
 }
 
 
@@ -649,20 +647,7 @@ function showPage(page, link, updateUrl = true) {
         /* w */
 
         if (page === "w") {
-            content.innerHTML = `
-                <div class="w-item">
-                    <img src="pic/w/20240605_013611.jpg" width="4000" height="3000">
-
-                    <button type="button" class="image-description" onclick="duplicateImageDescription(this)">
-                        :::::<br>
-                        :::::<br>
-                        :::::<br>
-                        :::::<br>
-                        :::::<br>
-                        <span class="image-description-last-line">:::::</span><br>
-                    </button>
-                </div>
-            `;
+            content.innerHTML = renderWContent();
         }
 
 

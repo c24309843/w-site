@@ -108,6 +108,18 @@ nav .nav-static {
     gap: 30px;
 }
 
+.print-item,
+.w-item,
+.mirror-item {
+    width: max-content;
+}
+
+#content .print-item img,
+#content .w-item img,
+#content .mirror-item img {
+    max-width: none;
+}
+
 .print-item > a,
 .print-item > .image-description,
 .w-item > img,
