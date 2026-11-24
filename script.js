@@ -326,6 +326,61 @@ function activateBottomSubLink(link) {
 }
 
 
+function fitSubNavigation() {
+    const subNavs = document.querySelectorAll("#sub-nav, #bottom-sub-nav");
+    const viewportWidth = window.visualViewport
+        ? Math.min(window.innerWidth, window.visualViewport.width)
+        : window.innerWidth;
+
+    subNavs.forEach((subNav) => {
+        if (window.getComputedStyle(subNav).display === "none") {
+            return;
+        }
+
+        const links = Array.from(subNav.querySelectorAll("a"));
+
+        if (!links.length) {
+            return;
+        }
+
+        links.forEach((link) => {
+            if (link.dataset.originalMargin === undefined) {
+                link.dataset.originalMargin = window.parseFloat(link.style.marginLeft) || 0;
+            }
+
+            link.style.marginLeft = `${link.dataset.originalMargin}px`;
+        });
+
+        const subNavLeft = subNav.getBoundingClientRect().left;
+        const availableWidth = Math.max(0, viewportWidth - subNavLeft - 80);
+        const linksWidth = links.reduce(
+            (total, link) => total + link.getBoundingClientRect().width,
+            0
+        );
+        const gapsWidth = Math.max(0, links.length - 1) * 10;
+        const originalMarginsWidth = links.reduce(
+            (total, link) => total + window.parseFloat(link.dataset.originalMargin),
+            0
+        );
+
+        let fitFactor = 1;
+        const naturalWidth = linksWidth + originalMarginsWidth + gapsWidth;
+
+        if (naturalWidth > availableWidth) {
+            fitFactor = Math.max(
+                0,
+                (availableWidth - linksWidth - gapsWidth) / originalMarginsWidth
+            );
+        }
+
+        links.forEach((link) => {
+            const originalMargin = window.parseFloat(link.dataset.originalMargin);
+            link.style.marginLeft = `${originalMargin * fitFactor}px`;
+        });
+    });
+}
+
+
 function updatePageUrl(page, replace = false) {
     if (window.location.protocol === "file:") {
         return;
@@ -426,6 +481,7 @@ function restorePageFromUrl() {
         return;
     }
 
+    fitSubNavigation();
     showPage(mainPage, link, false);
 
     if (printSubcategory) {
@@ -441,6 +497,20 @@ function restorePageFromUrl() {
     if (hasLegacyPageQuery) {
         updatePageUrl(printSubcategory ? `sd/${printSubcategory}` : mainPage, true);
     }
+}
+
+
+window.addEventListener("resize", fitSubNavigation);
+window.addEventListener("orientationchange", fitSubNavigation);
+
+if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", fitSubNavigation);
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", fitSubNavigation);
+} else {
+    fitSubNavigation();
 }
 
 
