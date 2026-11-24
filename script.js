@@ -146,12 +146,18 @@ function showPrintSubcategory(category, link, updateUrl = true) {
     }
 }
 
-function duplicatePrintDescription(description) {
+function duplicateImageDescription(description) {
+    const item = description.parentElement;
     const duplicate = description.cloneNode(true);
     duplicate.classList.remove("flash-red");
     description.insertAdjacentElement("afterend", duplicate);
 
-    const descriptions = description.parentElement.querySelectorAll(".print-description");
+    const descriptions = item.querySelectorAll(".image-description");
+    const milestoneEndings = ["c:::", "o:::", "c:::", "k:::"];
+    descriptions.forEach((text, index) => {
+        text.querySelector(".image-description-last-line").textContent =
+            milestoneEndings[index - 24] || ":::::";
+    });
     descriptions.forEach((text) => text.classList.remove("flash-red"));
     void description.offsetWidth;
     descriptions.forEach((text) => text.classList.add("flash-red"));
@@ -168,13 +174,13 @@ function renderLohneContent() {
         <img src="${printImage("Scan_20260119 (2).jpg")}" width="1251" height="1807">
     </a>
 
-    <button type="button" class="print-description" onclick="duplicatePrintDescription(this)">
+    <button type="button" class="image-description" onclick="duplicateImageDescription(this)">
         :::::<br>
         :::::<br>
         :::::<br>
         :::::<br>
         :::::<br>
-        :::::
+        <span class="image-description-last-line">:::::</span>
     </button>
 
 </div>
@@ -184,13 +190,13 @@ function renderLohneContent() {
         <img src="${printImage("Scan_20260119.jpg")}" width="3327" height="2125">
     </a>
 
-    <button type="button" class="print-description" onclick="duplicatePrintDescription(this)">
+    <button type="button" class="image-description" onclick="duplicateImageDescription(this)">
         :::::<br>
         :::::<br>
         :::::<br>
         :::::<br>
         :::::<br>
-        :::::<br>
+        <span class="image-description-last-line">:::::</span><br>
     </button>
 </div>
 
@@ -199,13 +205,13 @@ function renderLohneContent() {
         <img src="${printImage("Scan_20260119 (20).jpg")}" width="3252" height="2112">
     </a>
 
-    <button type="button" class="print-description" onclick="duplicatePrintDescription(this)">
+    <button type="button" class="image-description" onclick="duplicateImageDescription(this)">
         :::::<br>
         :::::<br>
         :::::<br>
         :::::<br>
         :::::<br>
-        :::::
+        <span class="image-description-last-line">:::::</span>
     </button>
 </div>
 
@@ -216,6 +222,37 @@ function renderLohneContent() {
     nig-----------------------ck fuck
 </a>
 `;
+}
+
+function renderMirrorContent() {
+    const mirrorImages = [
+        "20250918_184401.jpg",
+        "20251129_130441.jpg",
+        "20251209_201021.jpg",
+        "20251213_125321.jpg",
+        "20251215_153601.jpg"
+    ];
+    const mirrorImage = (filename) =>
+        `${appBasePath}pic/mirror/${encodeURIComponent(filename)}`;
+
+    return mirrorImages.map((filename) => {
+        const image = mirrorImage(filename);
+        return `
+<div class="mirror-item">
+    <a href="${image}" target="_blank">
+        <img src="${image}" width="600">
+    </a>
+
+    <button type="button" class="image-description" onclick="duplicateImageDescription(this)">
+        :::::<br>
+        :::::<br>
+        :::::<br>
+        :::::<br>
+        :::::<br>
+        <span class="image-description-last-line">:::::</span>
+    </button>
+</div>`;
+    }).join("");
 }
 
 
@@ -616,14 +653,14 @@ function showPage(page, link, updateUrl = true) {
                 <div class="w-item">
                     <img src="pic/w/20240605_013611.jpg" width="4000" height="3000">
 
-                    <div class="w-description">
+                    <button type="button" class="image-description" onclick="duplicateImageDescription(this)">
                         :::::<br>
                         :::::<br>
                         :::::<br>
                         :::::<br>
                         :::::<br>
-                        :::::<br>
-                    </div>
+                        <span class="image-description-last-line">:::::</span><br>
+                    </button>
                 </div>
             `;
         }
@@ -670,7 +707,7 @@ function showPage(page, link, updateUrl = true) {
         /* side-mirror */
 
         if (page === "side-mirror") {
-            content.innerHTML = "";
+            content.innerHTML = renderMirrorContent();
         }
 
 

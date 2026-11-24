@@ -109,11 +109,15 @@ nav .nav-static {
 }
 
 .print-item > a,
-.print-item > .print-description {
+.print-item > .image-description,
+.w-item > img,
+.w-item > .image-description,
+.mirror-item > a,
+.mirror-item > .image-description {
     flex-shrink: 0;
 }
 
-.print-description {
+.image-description {
     display: block;
     margin-bottom: 100px;
     margin-left: 20px;
@@ -127,11 +131,11 @@ nav .nav-static {
     cursor: pointer;
 }
 
-.print-description + .print-description {
+.image-description + .image-description {
     margin-left: -26px;
 }
 
-.print-description.flash-red {
+.image-description.flash-red {
     animation: o18-graph-flash 600ms ease-in-out 2;
 }
 
@@ -145,20 +149,11 @@ nav .nav-static {
     gap: 30px;
 }
 
-.w-description {
-    margin-bottom: 100px;
-    margin-left: 20px;
-    color: #551A8B;
-    text-decoration: none;
-    font-family: inherit;
-    font-size: inherit;
-    font-weight: normal;
+.mirror-item {
+    display: flex;
+    align-items: flex-end;
+    gap: 30px;
 }
-
-
-
-
-
 
 /* subcategories */
 
