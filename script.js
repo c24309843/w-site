@@ -122,6 +122,17 @@ function showPrintSubcategory(category, link, updateUrl = true) {
         return;
     }
 
+    if (activePrintSubLink === link) {
+        activePrintSubLink.classList.remove("active");
+        activePrintSubLink = null;
+        document.getElementById("content").innerHTML = "";
+
+        if (updateUrl) {
+            updatePageUrl("sd");
+        }
+        return;
+    }
+
     if (activePrintSubLink) {
         activePrintSubLink.classList.remove("active");
     }
@@ -491,6 +502,10 @@ function restorePageFromUrl() {
 
 window.addEventListener("resize", fitSubNavigation);
 window.addEventListener("orientationchange", fitSubNavigation);
+
+if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", fitSubNavigation);
+}
 
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", fitSubNavigation);
