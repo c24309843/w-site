@@ -10,9 +10,10 @@ let activePrintSubLink = null;
 let twitchPlayerLoader = null;
 const appBasePath = new URL(".", document.currentScript.src).pathname;
 
-function updateHomeViewClass() {
-    const isHomeView = !currentPage && !activeMainLink;
-    document.body.classList.toggle("home-view", isHomeView);
+function updateBottomNavPositionClass() {
+    const useLowerPosition = (!currentPage && !activeMainLink) ||
+        (currentPage === "sd" && !activePrintSubLink);
+    document.body.classList.toggle("bottom-nav-low", useLowerPosition);
 }
 
 const o5TextOptions = ["gnome ...", "yyyyyyyyyyyyyy", "chome."];
@@ -136,6 +137,7 @@ function showPrintSubcategory(category, link, updateUrl = true) {
         if (updateUrl) {
             updatePageUrl("sd");
         }
+        updateBottomNavPositionClass();
         return;
     }
 
@@ -148,6 +150,7 @@ function showPrintSubcategory(category, link, updateUrl = true) {
     document.getElementById("content").innerHTML = category === "lohne"
         ? renderLohneContent()
         : "";
+    updateBottomNavPositionClass();
 
     if (updateUrl) {
         updatePageUrl(`sd/${category}`);
@@ -320,7 +323,7 @@ function activateBottomSubLink(link) {
     if (activeBottomSubLink === link) {
         activeBottomSubLink.classList.remove("active");
         activeBottomSubLink = null;
-        updateHomeViewClass();
+        updateBottomNavPositionClass();
         return;
     }
 
@@ -330,7 +333,7 @@ function activateBottomSubLink(link) {
 
     activeBottomSubLink = link;
     activeBottomSubLink.classList.add("active");
-    updateHomeViewClass();
+    updateBottomNavPositionClass();
 }
 
 
@@ -468,7 +471,7 @@ function clearPageState() {
 
     currentPage = null;
     currentOverlay = null;
-    updateHomeViewClass();
+    updateBottomNavPositionClass();
 }
 
 
@@ -564,7 +567,7 @@ function showPage(page, link, updateUrl = true) {
             if (updateUrl) {
                 updatePageUrl(null);
             }
-            updateHomeViewClass();
+            updateBottomNavPositionClass();
             return;
         }
 
@@ -577,7 +580,7 @@ function showPage(page, link, updateUrl = true) {
         activeMainLink.classList.add("active");
 
         currentPage = page;
-        updateHomeViewClass();
+        updateBottomNavPositionClass();
         document.getElementById("print-sub-nav").hidden = page !== "sd";
         if (updateUrl) {
             updatePageUrl(page);
@@ -690,7 +693,7 @@ function showPage(page, link, updateUrl = true) {
             if (updateUrl) {
                 updatePageUrl(currentPage);
             }
-            updateHomeViewClass();
+            updateBottomNavPositionClass();
             return;
         }
 
@@ -721,7 +724,7 @@ function showPage(page, link, updateUrl = true) {
                         activeSubLink = null;
                     }
                     updatePageUrl(currentPage);
-                    updateHomeViewClass();
+                    updateBottomNavPositionClass();
                 }
             });
 
@@ -730,7 +733,7 @@ function showPage(page, link, updateUrl = true) {
 
         overlay.innerHTML = "";
         currentOverlay = page;
-        updateHomeViewClass();
+        updateBottomNavPositionClass();
         if (updateUrl) {
             updatePageUrl(page);
         }
@@ -1009,5 +1012,5 @@ window.addEventListener("popstate", restorePageFromUrl);
 if (getPageFromUrl()) {
     restorePageFromUrl();
 } else {
-    updateHomeViewClass();
+    updateBottomNavPositionClass();
 }

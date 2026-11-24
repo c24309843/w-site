@@ -165,7 +165,7 @@ nav .nav-static {
     z-index: 1000;
 }
 
-body.home-view #bottom-sub-nav {
+body.bottom-nav-low #bottom-sub-nav {
     bottom: env(safe-area-inset-bottom, 0px);
 }
 
