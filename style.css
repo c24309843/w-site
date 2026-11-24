@@ -82,6 +82,12 @@ nav .nav-static {
     text-decoration: none;
 }
 
+@media (max-width: 980px) {
+    #print-text {
+        right: 10vw;
+    }
+}
+
 #print-sub-nav {
     position: fixed;
     top: 220px;
