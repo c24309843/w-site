@@ -248,7 +248,7 @@ function fitSubNavigation() {
         });
 
         const subNavLeft = subNav.getBoundingClientRect().left;
-        const availableWidth = Math.max(0, viewportWidth - subNavLeft - 20);
+        const availableWidth = Math.max(0, viewportWidth - subNavLeft - 80);
         const linksWidth = links.reduce(
             (total, link) => total + link.getBoundingClientRect().width,
             0
