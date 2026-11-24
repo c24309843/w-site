@@ -168,21 +168,6 @@ function renderLohneContent() {
         :::::
     </div>
 
-<div class="side-images">
-    <img src="${printImage("Scan_20260119 (20).jpg")}" width="3252" height="2112"><br>
-    <img src="${printImage("Scan_20260119 (20).jpg")}" width="3252" height="2112"><br>
-    <img src="${printImage("Scan_20260119 (20).jpg")}" width="3252" height="2112">
-
-    <div class="side-image-text">
-    <br><br><br><br><br>
-        :::::::::::::::<br>
-        :::::::::::::::<br>
-        :::::::::::::::<br><br><br><br><br>
-        :::::::::::::::<br><br><br><br><br><br><br><br><br><br><br><br>
-        :::::::::::::::
-    </div>
-</div>
-
 </div>
 
 <div class="print-item">
@@ -197,6 +182,18 @@ function renderLohneContent() {
         :::::<br>
         :::::<br>
         :::::<br>
+    </div>
+</div>
+
+<div class="side-images">
+    <img src="${printImage("Scan_20260119 (20).jpg")}" width="3252" height="2112">
+
+    <div class="side-image-text">
+        :::::::::::::::<br>
+        :::::::::::::::<br>
+        :::::::::::::::<br>
+        :::::::::::::::<br>
+        :::::::::::::::
     </div>
 </div>
 
