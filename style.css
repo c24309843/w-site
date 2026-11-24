@@ -124,6 +124,10 @@ nav .nav-static {
     max-width: none;
 }
 
+#content .mirror-item img {
+    aspect-ratio: auto 3 / 2;
+}
+
 .print-item > a,
 .print-item > .image-description,
 .w-item > img,
@@ -169,6 +173,10 @@ nav .nav-static {
     display: flex;
     align-items: flex-end;
     gap: 30px;
+}
+
+.mirror-load-trigger {
+    height: 1px;
 }
 
 /* subcategories */

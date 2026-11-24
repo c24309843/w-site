@@ -8,7 +8,17 @@ let activeSubLink = null;
 let activeBottomSubLink = null;
 let activePrintSubLink = null;
 let twitchPlayerLoader = null;
+let mirrorImageObserver = null;
 const appBasePath = new URL(".", document.currentScript.src).pathname;
+const mirrorImages = [
+    "20250918_184401.jpg",
+    "20251129_130441.jpg",
+    "20251209_201021.jpg",
+    "20251213_125321.jpg",
+    "20251215_153601.jpg"
+];
+const mirrorImageBatchSize = 5;
+const mirrorImagePrefetchDistance = 800;
 
 const o5TextOptions = ["gnome ...", "yyyyyyyyyyyyyy", "chome."];
 const o18GraphOptions = [
@@ -211,27 +221,82 @@ function renderLohneContent() {
 `;
 }
 
-function renderMirrorContent() {
-    const mirrorImages = [
-        "20250918_184401.jpg",
-        "20251129_130441.jpg",
-        "20251209_201021.jpg",
-        "20251213_125321.jpg",
-        "20251215_153601.jpg"
-    ];
+function renderMirrorItems(startIndex, endIndex) {
     const mirrorImage = (filename) =>
         `${appBasePath}pic/mirror/${encodeURIComponent(filename)}`;
 
-    return mirrorImages.map((filename) => {
+    return mirrorImages.slice(startIndex, endIndex).map((filename) => {
         const image = mirrorImage(filename);
         return `
 <div class="mirror-item">
     <a href="${image}" target="_blank">
-        <img src="${image}" width="600">
+        <img src="${image}" width="600" loading="lazy" decoding="async">
     </a>
     ${renderImageDescription()}
 </div>`;
     }).join("");
+}
+
+function renderMirrorContent() {
+    const initialCount = Math.min(mirrorImageBatchSize, mirrorImages.length);
+    const loadTrigger = initialCount < mirrorImages.length
+        ? `<div class="mirror-load-trigger" data-next-index="${initialCount}" aria-hidden="true"></div>`
+        : "";
+
+    return `${renderMirrorItems(0, initialCount)}${loadTrigger}`;
+}
+
+function stopMirrorImageLoading() {
+    if (mirrorImageObserver) {
+        mirrorImageObserver.disconnect();
+        mirrorImageObserver = null;
+    }
+}
+
+function appendMirrorImageBatch(trigger) {
+    const nextIndex = Number(trigger.dataset.nextIndex);
+    const endIndex = Math.min(nextIndex + mirrorImageBatchSize, mirrorImages.length);
+    trigger.insertAdjacentHTML("beforebegin", renderMirrorItems(nextIndex, endIndex));
+
+    if (endIndex >= mirrorImages.length) {
+        trigger.remove();
+        stopMirrorImageLoading();
+        return false;
+    }
+
+    trigger.dataset.nextIndex = String(endIndex);
+    return true;
+}
+
+function startMirrorImageLoading() {
+    const trigger = document.querySelector("#content .mirror-load-trigger");
+    if (!trigger) {
+        return;
+    }
+
+    if (!("IntersectionObserver" in window)) {
+        while (appendMirrorImageBatch(trigger)) {
+            // Load all images when progressive loading is unsupported.
+        }
+        return;
+    }
+
+    mirrorImageObserver = new IntersectionObserver((entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) {
+            return;
+        }
+
+        while (
+            trigger.isConnected &&
+            trigger.getBoundingClientRect().top <= window.innerHeight + mirrorImagePrefetchDistance
+        ) {
+            if (!appendMirrorImageBatch(trigger)) {
+                return;
+            }
+        }
+    }, { rootMargin: `${mirrorImagePrefetchDistance}px 0px` });
+
+    mirrorImageObserver.observe(trigger);
 }
 
 function renderWContent() {
@@ -580,6 +645,7 @@ if (document.readyState === "loading") {
 /* page navigation */
 
 function showPage(page, link, updateUrl = true) {
+    stopMirrorImageLoading();
     const content = document.getElementById("content");
     let overlay = document.getElementById("overlay");
 
@@ -693,6 +759,7 @@ function showPage(page, link, updateUrl = true) {
 
         if (page === "side-mirror") {
             content.innerHTML = renderMirrorContent();
+            startMirrorImageLoading();
         }
 
 
