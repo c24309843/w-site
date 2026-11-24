@@ -108,14 +108,31 @@ nav .nav-static {
     gap: 30px;
 }
 
+.print-item > a,
+.print-item > .print-description {
+    flex-shrink: 0;
+}
+
 .print-description {
+    display: block;
     margin-bottom: 100px;
     margin-left: 20px;
+    padding: 0;
+    border: 0;
+    background: transparent;
     color: #551A8B;
     text-decoration: none;
-    font-family: inherit;
-    font-size: inherit;
-    font-weight: normal;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.print-description + .print-description {
+    margin-left: -26px;
+}
+
+.print-description.flash-red {
+    animation: o18-graph-flash 600ms ease-in-out 2;
 }
 
 /* w */

@@ -146,6 +146,17 @@ function showPrintSubcategory(category, link, updateUrl = true) {
     }
 }
 
+function duplicatePrintDescription(description) {
+    const duplicate = description.cloneNode(true);
+    duplicate.classList.remove("flash-red");
+    description.insertAdjacentElement("afterend", duplicate);
+
+    const descriptions = description.parentElement.querySelectorAll(".print-description");
+    descriptions.forEach((text) => text.classList.remove("flash-red"));
+    void description.offsetWidth;
+    descriptions.forEach((text) => text.classList.add("flash-red"));
+}
+
 
 function renderLohneContent() {
     const printImage = (filename) =>
@@ -157,14 +168,14 @@ function renderLohneContent() {
         <img src="${printImage("Scan_20260119 (2).jpg")}" width="1251" height="1807">
     </a>
 
-    <div class="print-description">
+    <button type="button" class="print-description" onclick="duplicatePrintDescription(this)">
         :::::<br>
         :::::<br>
         :::::<br>
         :::::<br>
         :::::<br>
         :::::
-    </div>
+    </button>
 
 </div>
 
@@ -173,14 +184,14 @@ function renderLohneContent() {
         <img src="${printImage("Scan_20260119.jpg")}" width="3327" height="2125">
     </a>
 
-    <div class="print-description">
+    <button type="button" class="print-description" onclick="duplicatePrintDescription(this)">
         :::::<br>
         :::::<br>
         :::::<br>
         :::::<br>
         :::::<br>
         :::::<br>
-    </div>
+    </button>
 </div>
 
 <div class="print-item">
@@ -188,14 +199,14 @@ function renderLohneContent() {
         <img src="${printImage("Scan_20260119 (20).jpg")}" width="3252" height="2112">
     </a>
 
-    <div class="print-description">
+    <button type="button" class="print-description" onclick="duplicatePrintDescription(this)">
         :::::<br>
         :::::<br>
         :::::<br>
         :::::<br>
         :::::<br>
         :::::
-    </div>
+    </button>
 </div>
 
 <a id="print-text" class="graph-text" href="#" onclick="togglePrintText(this); return false;">
@@ -308,10 +319,13 @@ function initializeTwitchPlayer() {
 }
 
 
-function activateBottomSubLink(link) {
+function activateBottomSubLink(link, updateUrl = true) {
     if (activeBottomSubLink === link) {
         activeBottomSubLink.classList.remove("active");
         activeBottomSubLink = null;
+        if (updateUrl) {
+            updatePageUrl(null);
+        }
         return;
     }
 
@@ -321,6 +335,9 @@ function activateBottomSubLink(link) {
 
     activeBottomSubLink = link;
     activeBottomSubLink.classList.add("active");
+    if (updateUrl) {
+        updatePageUrl(link.id);
+    }
 }
 
 
@@ -385,11 +402,14 @@ function updatePageUrl(page, replace = false) {
     }
 
     const url = new URL(window.location.href);
+    const numberedOPage = /^o([1-9]|1\d|20)$/.exec(page || "");
     const route = page === "sd"
         ? "prints"
         : page && page.startsWith("sd/")
             ? `prints/${page.slice(3)}`
-            : page;
+            : numberedOPage
+                ? "o".repeat(Number(numberedOPage[1]))
+                : page;
     const routePath = route
         ? route.split("/").map((segment) => encodeURIComponent(segment)).join("/")
         : "";
@@ -426,14 +446,17 @@ function getPageFromUrl() {
         return route[1] ? `sd/${route[1]}` : "sd";
     }
 
-    return route[0] || "";
+    return /^o{1,20}$/.test(route[0] || "")
+        ? `o${route[0].length}`
+        : route[0] || "";
 }
 
 
 function findPageLink(page) {
     return Array.from(document.querySelectorAll("a[onclick]")).find((link) => {
         const handler = link.getAttribute("onclick") || "";
-        return handler.includes(`showPage('${page}', this)`);
+        return handler.includes(`showPage('${page}', this)`)
+            || (link.id === page && handler.includes("activateBottomSubLink"));
     });
 }
 
@@ -476,6 +499,11 @@ function restorePageFromUrl() {
 
     if (!link) {
         updatePageUrl(null, true);
+        return;
+    }
+
+    if ((link.getAttribute("onclick") || "").includes("activateBottomSubLink")) {
+        activateBottomSubLink(link, false);
         return;
     }
 
@@ -740,7 +768,7 @@ function showPage(page, link, updateUrl = true) {
                 <div class="tiktok-post-container">
                     <iframe
                         class="tiktok-embed"
-                        src="https://www.tiktok.com/player/v1/7685288523800382734?embed_from=oembed&music_info=1&description=1&autoplay=1&loop=1&muted=0&volume=100"
+                        src="https://www.tiktok.com/embed/v2/7685288523800382734?autoplay=1&loop=1&muted=0&volume=100"
                         width="325"
                         height="578"
                         frameborder="0"
