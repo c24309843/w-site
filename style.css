@@ -165,6 +165,10 @@ nav .nav-static {
     z-index: 1000;
 }
 
+body.home-view #bottom-sub-nav {
+    bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+}
+
 #right-text a {
     color: #551A8B;
 }
