@@ -156,14 +156,22 @@ nav .nav-static {
 }
 
 #bottom-sub-nav {
+    --bottom-nav-gap: 47px;
     position: fixed;
-    top: auto;
-    bottom: calc(47px + env(safe-area-inset-bottom, 0px));
+    top: calc(var(--viewport-bottom, 100vh) - var(--bottom-nav-gap) - env(safe-area-inset-bottom, 0px));
+    bottom: auto;
     left: 50px;
     display: flex;
     flex-direction: row;
     gap: 10px;
     z-index: 1000;
+    transform: translateY(-100%);
+}
+
+@media (max-width: 980px) {
+    #bottom-sub-nav {
+        --bottom-nav-gap: 15px;
+    }
 }
 
 #right-text a {
