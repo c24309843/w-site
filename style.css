@@ -166,7 +166,7 @@ nav .nav-static {
 }
 
 body.home-view #bottom-sub-nav {
-    bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+    bottom: env(safe-area-inset-bottom, 0px);
 }
 
 #right-text a {

@@ -11,11 +11,7 @@ let twitchPlayerLoader = null;
 const appBasePath = new URL(".", document.currentScript.src).pathname;
 
 function updateHomeViewClass() {
-    const isHomeView = !currentPage &&
-        !currentOverlay &&
-        !activeMainLink &&
-        !activeSubLink &&
-        !activeBottomSubLink;
+    const isHomeView = !currentPage && !activeMainLink;
     document.body.classList.toggle("home-view", isHomeView);
 }
 
