@@ -128,11 +128,74 @@ function showPrintSubcategory(category, link, updateUrl = true) {
 
     activePrintSubLink = link;
     activePrintSubLink.classList.add("active");
-    document.getElementById("content").innerHTML = "";
+    document.getElementById("content").innerHTML = category === "lohne"
+        ? renderLohneContent()
+        : "";
 
     if (updateUrl) {
         updatePageUrl(`sd/${category}`);
     }
+}
+
+
+function renderLohneContent() {
+    const printImage = (filename) =>
+        `${appBasePath}pic/print/${encodeURIComponent(filename)}`;
+
+    return `
+<div class="print-item">
+    <a href="${printImage("Scan_20260119 (2).jpg")}" target="_blank">
+        <img src="${printImage("Scan_20260119 (2).jpg")}" width="1251" height="1807">
+    </a>
+
+    <div class="print-description">
+        :::::<br>
+        :::::<br>
+        :::::<br>
+        :::::<br>
+        :::::<br>
+        :::::
+    </div>
+
+<div class="side-images">
+    <img src="${printImage("Scan_20260119 (20).jpg")}" width="3252" height="2112"><br>
+    <img src="${printImage("Scan_20260119 (20).jpg")}" width="3252" height="2112"><br>
+    <img src="${printImage("Scan_20260119 (20).jpg")}" width="3252" height="2112">
+
+    <div class="side-image-text">
+    <br><br><br><br><br>
+        :::::::::::::::<br>
+        :::::::::::::::<br>
+        :::::::::::::::<br><br><br><br><br>
+        :::::::::::::::<br><br><br><br><br><br><br><br><br><br><br><br>
+        :::::::::::::::
+    </div>
+</div>
+
+</div>
+
+<div class="print-item">
+    <a href="${printImage("Scan_20260119.jpg")}" target="_blank">
+        <img src="${printImage("Scan_20260119.jpg")}" width="3327" height="2125">
+    </a>
+
+    <div class="print-description">
+        :::::<br>
+        :::::<br>
+        :::::<br>
+        :::::<br>
+        :::::<br>
+        :::::<br>
+    </div>
+</div>
+
+<a id="print-text" class="graph-text" href="#" onclick="togglePrintText(this); return false;">
+    abo--------------------------cks.<br>
+    gnow gnow gnow gnow.<br>
+    coc.........................fuck<br>
+    nig-----------------------ck fuck
+</a>
+`;
 }
 
 
@@ -498,60 +561,7 @@ function showPage(page, link, updateUrl = true) {
         /* prints (sd) */
 
         if (page === "sd") {
-            content.innerHTML = `
-<div class="print-item">
-    <a href="pic/print/Scan_20260119 (2).jpg" target="_blank">
-        <img src="pic/print/Scan_20260119 (2).jpg" width="1251" height="1807">
-    </a>
-
-    <div class="print-description">
-        :::::<br>
-        :::::<br>
-        :::::<br>
-        :::::<br>
-        :::::<br>
-        :::::
-    </div>
-
-<div class="side-images">
-    <img src="pic/print/Scan_20260119 (20).jpg" width="3252" height="2112"><br>
-    <img src="pic/print/Scan_20260119 (20).jpg" width="3252" height="2112"><br>
-    <img src="pic/print/Scan_20260119 (20).jpg" width="3252" height="2112">
-
-    <div class="side-image-text">
-    <br><br><br><br><br>
-        :::::::::::::::<br>
-        :::::::::::::::<br>
-        :::::::::::::::<br><br><br><br><br>
-        :::::::::::::::<br><br><br><br><br><br><br><br><br><br><br><br>
-        :::::::::::::::
-    </div>
-</div>
-
-</div>
-
-            <div class="print-item">
-                <a href="pic/print/Scan_20260119.jpg" target="_blank">
-                    <img src="pic/print/Scan_20260119.jpg" width="3327" height="2125">
-                </a>
-
-                <div class="print-description">
-                    :::::<br>
-                    :::::<br>
-                    :::::<br>
-                    :::::<br>
-                    :::::<br>
-                    :::::<br>
-                </div>
-            </div>
-
-            <a id="print-text" class="graph-text" href="#" onclick="togglePrintText(this); return false;">
-                abo--------------------------cks.<br>
-                gnow gnow gnow gnow.<br>
-                coc.........................fuck<br>
-                nig-----------------------ck fuck
-            </a>
-        `;
+            content.innerHTML = "";
         }
 
 
