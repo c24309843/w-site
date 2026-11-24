@@ -80,8 +80,8 @@ nav .nav-static {
 #print-sub-nav {
     position: fixed;
     top: 220px;
-    right: auto;
-    left: 690px;
+    right: 150px;
+    left: auto;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
