@@ -117,36 +117,6 @@ nav .nav-static {
     font-weight: normal;
 }
 
-/* side images */
-
-#content .print-item {
-    position: relative;
-}
-
-#content .side-images {
-    display: flex;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 20px;
-    margin: 0 0 40px 50px;
-}
-
-#content .side-images img {
-    flex: 0 1 250px;
-    width: 250px;
-    max-width: 100%;
-    height: auto;
-    margin: 0;
-}
-
-/* side image text */
-
-#content .side-image-text {
-    flex: 0 1 200px;
-    width: 200px;
-    color: #551A8B;
-}
-
 /* w */
 
 /* w image side text */

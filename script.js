@@ -185,15 +185,18 @@ function renderLohneContent() {
     </div>
 </div>
 
-<div class="side-images">
-    <img src="${printImage("Scan_20260119 (20).jpg")}" width="3252" height="2112">
+<div class="print-item">
+    <a href="${printImage("Scan_20260119 (20).jpg")}" target="_blank">
+        <img src="${printImage("Scan_20260119 (20).jpg")}" width="3252" height="2112">
+    </a>
 
-    <div class="side-image-text">
-        :::::::::::::::<br>
-        :::::::::::::::<br>
-        :::::::::::::::<br>
-        :::::::::::::::<br>
-        :::::::::::::::
+    <div class="print-description">
+        :::::<br>
+        :::::<br>
+        :::::<br>
+        :::::<br>
+        :::::<br>
+        :::::
     </div>
 </div>
 
