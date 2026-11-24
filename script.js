@@ -6,6 +6,7 @@ let currentOverlay = null;
 let activeMainLink = null;
 let activeSubLink = null;
 let activeBottomSubLink = null;
+let activePrintSubLink = null;
 let twitchPlayerLoader = null;
 const appBasePath = new URL(".", document.currentScript.src).pathname;
 const o5TextOptions = ["gnome ...", "yyyyyyyyyyyyyy", "chome."];
@@ -103,6 +104,35 @@ function renderO18Graph(graph, index, steps) {
     graph.textContent = lines.join("\n");
     graph.dataset.graphIndex = String(index);
     graph.dataset.stepCount = String(steps);
+}
+
+
+function clearPrintSubcategory() {
+    if (activePrintSubLink) {
+        activePrintSubLink.classList.remove("active");
+        activePrintSubLink = null;
+    }
+
+    document.getElementById("print-sub-nav").hidden = true;
+}
+
+
+function showPrintSubcategory(category, link, updateUrl = true) {
+    if (currentPage !== "sd") {
+        return;
+    }
+
+    if (activePrintSubLink) {
+        activePrintSubLink.classList.remove("active");
+    }
+
+    activePrintSubLink = link;
+    activePrintSubLink.classList.add("active");
+    document.getElementById("content").innerHTML = "";
+
+    if (updateUrl) {
+        updatePageUrl(`sd/${category}`);
+    }
 }
 
 
@@ -283,7 +313,15 @@ function updatePageUrl(page, replace = false) {
     }
 
     const url = new URL(window.location.href);
-    url.pathname = page ? `${appBasePath}${encodeURIComponent(page)}` : appBasePath;
+    const route = page === "sd"
+        ? "prints"
+        : page && page.startsWith("sd/")
+            ? `prints/${page.slice(3)}`
+            : page;
+    const routePath = route
+        ? route.split("/").map((segment) => encodeURIComponent(segment)).join("/")
+        : "";
+    url.pathname = `${appBasePath}${routePath}`;
     url.search = "";
     url.hash = "";
 
@@ -310,7 +348,13 @@ function getPageFromUrl() {
         return queryPage;
     }
 
-    return window.location.pathname.slice(appBasePath.length).split("/")[0];
+    const route = window.location.pathname.slice(appBasePath.length).split("/").filter(Boolean);
+
+    if (route[0] === "prints") {
+        return route[1] ? `sd/${route[1]}` : "sd";
+    }
+
+    return route[0] || "";
 }
 
 
@@ -325,6 +369,7 @@ function findPageLink(page) {
 function clearPageState() {
     document.getElementById("overlay")?.remove();
     document.getElementById("content").innerHTML = "";
+    clearPrintSubcategory();
 
     if (activeMainLink) {
         activeMainLink.classList.remove("active");
@@ -346,7 +391,9 @@ function clearPageState() {
 
 function restorePageFromUrl() {
     const page = getPageFromUrl();
-    const link = page ? findPageLink(page) : null;
+    const printSubcategory = page.startsWith("sd/") ? page.slice(3) : null;
+    const mainPage = printSubcategory ? "sd" : page;
+    const link = mainPage ? findPageLink(mainPage) : null;
     const hasLegacyPageQuery = new URLSearchParams(window.location.search).has("page");
 
     clearPageState();
@@ -361,9 +408,20 @@ function restorePageFromUrl() {
     }
 
     fitSubNavigation();
-    showPage(page, link, false);
+    showPage(mainPage, link, false);
+
+    if (printSubcategory) {
+        const subLink = document.getElementById(`print-${printSubcategory}`);
+        if (!subLink) {
+            updatePageUrl("sd", true);
+            return;
+        }
+
+        showPrintSubcategory(printSubcategory, subLink, false);
+    }
+
     if (hasLegacyPageQuery) {
-        updatePageUrl(page, true);
+        updatePageUrl(printSubcategory ? `sd/${printSubcategory}` : mainPage, true);
     }
 }
 
@@ -396,6 +454,7 @@ function showPage(page, link, updateUrl = true) {
 
         overlay?.remove();
         currentOverlay = null;
+        clearPrintSubcategory();
 
         if (activeSubLink) {
             activeSubLink.classList.remove("active");
@@ -430,6 +489,7 @@ function showPage(page, link, updateUrl = true) {
         activeMainLink.classList.add("active");
 
         currentPage = page;
+        document.getElementById("print-sub-nav").hidden = page !== "sd";
         if (updateUrl) {
             updatePageUrl(page);
         }

@@ -9,7 +9,10 @@
 <script>
     const requestedPath = window.location.pathname + window.location.search + window.location.hash;
     const path = window.location.pathname.replace(/\/+$/, "");
-    const basePath = path.slice(0, path.lastIndexOf("/") + 1) || "/";
+    const printsPathIndex = path.indexOf("/prints/");
+    const basePath = printsPathIndex >= 0
+        ? path.slice(0, printsPathIndex + 1) || "/"
+        : path.slice(0, path.lastIndexOf("/") + 1) || "/";
     window.location.replace(`${basePath}?__route=${encodeURIComponent(requestedPath)}`);
 </script>
 </body>
