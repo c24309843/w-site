@@ -189,6 +189,7 @@ body.home-view #bottom-sub-nav {
     white-space: pre;
     width: max-content;
     cursor: pointer;
+    touch-action: manipulation;
 }
 
 @keyframes o18-graph-flash {
