@@ -158,14 +158,13 @@ nav .nav-static {
 #bottom-sub-nav {
     --bottom-nav-gap: 47px;
     position: fixed;
-    top: calc(var(--viewport-height, 100vh) - var(--bottom-nav-gap) - env(safe-area-inset-bottom, 0px));
-    bottom: auto;
+    top: auto;
+    bottom: calc(var(--bottom-nav-gap) + env(safe-area-inset-bottom, 0px));
     left: 50px;
     display: flex;
     flex-direction: row;
     gap: 10px;
     z-index: 1000;
-    transform: translateY(-100%);
 }
 
 @media (max-width: 980px) {
@@ -345,12 +344,12 @@ nav .nav-static {
 }
 
 #overlay .bottom-left {
-    bottom: calc(100vh - var(--viewport-bottom, 100vh) + 100px);
+    bottom: calc(100px + env(safe-area-inset-bottom, 0px));
     left: calc(var(--viewport-offset-x, 0px) + 150px);
 }
 
 #overlay .bottom-right {
-    bottom: calc(100vh - var(--viewport-bottom, 100vh) + 100px);
+    bottom: calc(100px + env(safe-area-inset-bottom, 0px));
     right: calc(100vw - var(--viewport-right, 100vw) + 150px);
     text-align: right;
 }

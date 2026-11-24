@@ -31,9 +31,7 @@ function syncMobileViewport() {
     document.documentElement.style.setProperty("--viewport-offset-x", `${viewport.offsetLeft}px`);
     document.documentElement.style.setProperty("--viewport-offset-y", `${viewport.offsetTop}px`);
     document.documentElement.style.setProperty("--viewport-width", `${viewport.width}px`);
-    document.documentElement.style.setProperty("--viewport-height", `${viewport.height}px`);
     document.documentElement.style.setProperty("--viewport-right", `${viewport.offsetLeft + viewport.width}px`);
-    document.documentElement.style.setProperty("--viewport-bottom", `${viewport.offsetTop + viewport.height}px`);
 
 }
 
