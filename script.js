@@ -624,12 +624,10 @@ function renderWContent() {
         ["20250507_004140.jpg", { threeOAccent: true }],
         ["20250601_210220.jpg", { threeOAccent: true }],
         ["20250601_210641.jpg", { threeOAccent: true }],
-        ["20250622_211727.jpg", { threeOAccent: true, accentPosition: "right" }],
+        ["20250622_211727.jpg", { singleMovingO: true }],
         ["20250616_212118.jpg", { threeOAccent: true }],
         // Nine O grid
         ["20250506_232944.jpg", { nineOGrid: true }],
-        // Moving accents (single moving o on second-to-last image)
-        ["20250526_010739.jpg", { singleMovingO: true }],
         // Three moving o's on last image
         ["New folder/20260111_192024.jpg", { threeMovingOs: true }]
     ]);
