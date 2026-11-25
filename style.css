@@ -92,6 +92,16 @@ nav .nav-static {
     text-decoration: none;
 }
 
+#content .graph-text {
+    display: block;
+    width: max-content;
+    white-space: nowrap;
+}
+
+.graph-text.flash-red {
+    animation: o18-graph-flash 600ms ease-in-out;
+}
+
 .erotics-text {
     position: fixed;
     top: 50%;
@@ -103,8 +113,8 @@ nav .nav-static {
     background: transparent;
     font: inherit;
     text-align: left;
-    white-space: pre-line;
-    width: 21em;
+    white-space: pre;
+    width: 6em;
     max-width: calc(100vw - 32px);
     cursor: pointer;
 }

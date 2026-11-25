@@ -156,6 +156,7 @@ syncMobileViewport();
 function togglePrintText(link) {
     if (link.dataset.originalText === undefined) {
         link.dataset.originalText = link.innerHTML;
+        link.style.width = `${link.getBoundingClientRect().width}px`;
     }
     if (link.dataset.altText === undefined) {
         link.dataset.altText = `
@@ -179,6 +180,9 @@ function togglePrintText(link) {
     ];
     const currentIndex = Number(link.dataset.graphIndex || 0);
     const nextIndex = (currentIndex + 1) % textOptions.length;
+    link.classList.remove("flash-red");
+    void link.offsetWidth;
+    link.classList.add("flash-red");
     link.innerHTML = textOptions[nextIndex];
     link.dataset.graphIndex = String(nextIndex);
 }
@@ -425,10 +429,42 @@ function renderWContent() {
         "20250518_195425.jpg",
         "20240509_234712.jpg",
         "20240605_013611.jpg",
-        "20240605_014712.jpg"
+        "20240605_014712.jpg",
+        "20240422_002550.jpg",
+        "20240425_230426.jpg",
+        "20240605_012735.jpg",
+        "20240608_223025.jpg",
+        "20240718_220130.jpg",
+        "20240725_232142.jpg",
+        "20241121_022416.jpg",
+        "20250211_214418.jpg",
+        "20250216_004753.jpg",
+        "20250220_215338.jpg",
+        "20250220_223023.jpg",
+        "20250314_213700.jpg",
+        "20250314_225400.jpg",
+        "20250405_022816.jpg",
+        "20250409_223136.jpg",
+        "20250428_001046.jpg",
+        "20250504_001335.jpg",
+        "20250506_232944.jpg",
+        "20250507_004140.jpg",
+        "20250518_233200.jpg",
+        "20250525_220553.jpg",
+        "20250601_210220.jpg",
+        "20250601_210641.jpg",
+        "20250602_000623.jpg",
+        "20250609_014849.jpg",
+        "20250609_014852.jpg",
+        "20250609_041050.jpg",
+        "20250616_212118.jpg",
+        "20250622_211727.jpg",
+        "20250806_110341.jpg",
+        "New folder/20250526_010739.jpg",
+        "New folder/20260111_192024.jpg"
     ];
     const wImage = (filename) =>
-        `${appBasePath}pic/w/${encodeURIComponent(filename)}`;
+        `${appBasePath}pic/w/${filename.split("/").map(encodeURIComponent).join("/")}`;
     const wImageOneBorder = (thickness) => {
         const horizontal = Array.from(
             { length: thickness },
