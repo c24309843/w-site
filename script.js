@@ -7,6 +7,8 @@ let activeMainLink = null;
 let activeSubLink = null;
 let activeBottomSubLink = null;
 let activePrintSubLink = null;
+let activePrintOverlayLink = null;
+let activeWTumblrOverlayLink = null;
 let twitchPlayerLoader = null;
 let mirrorImageObserver = null;
 let sequentialImageLoading = false;
@@ -15,7 +17,6 @@ const appBasePath = new URL(".", document.currentScript.src).pathname;
 const mirrorImages = [
     "20250918_184401.jpg",
     "20251129_130441.jpg",
-    "20251209_201021.jpg",
     "20251213_125321.jpg",
     "20251215_153601.jpg"
 ];
@@ -217,6 +218,8 @@ function renderO18Graph(graph, index, steps) {
 
 
 function clearPrintSubcategory() {
+    closePrintTumblrOverlay();
+
     if (activePrintSubLink) {
         activePrintSubLink.classList.remove("active");
         activePrintSubLink = null;
@@ -230,6 +233,8 @@ function showPrintSubcategory(category, link, updateUrl = true) {
     if (currentPage !== "sd") {
         return;
     }
+
+    closePrintTumblrOverlay();
 
     if (activePrintSubLink === link) {
         activePrintSubLink.classList.remove("active");
@@ -248,12 +253,144 @@ function showPrintSubcategory(category, link, updateUrl = true) {
 
     activePrintSubLink = link;
     activePrintSubLink.classList.add("active");
-    document.getElementById("content").innerHTML = category === "lohne"
-        ? renderLohneContent()
-        : "";
-    startSequentialImageLoading(document.getElementById("content"));
+    const content = document.getElementById("content");
+    if (category === "lohne") {
+        content.innerHTML = renderLohneContent();
+        startSequentialImageLoading(content);
+    } else {
+        content.innerHTML = "";
+    }
+
     if (updateUrl) {
         updatePageUrl(`sd/${category}`);
+    }
+}
+
+function renderPrintTumblrPost() {
+    return renderTumblrPost(
+        "https://embed.tumblr.com/embed/post/t:GBq4BHiVEj-zFU_vhdq0nA/812469883359084544/v2",
+        "Tumblr print post",
+        700
+    );
+}
+
+function renderWTumblrPost() {
+    return renderTumblrPost(
+        "https://embed.tumblr.com/embed/post/t:GBq4BHiVEj-zFU_vhdq0nA/811620224681050112/v2",
+        "Tumblr W post",
+        580
+    );
+}
+
+function renderTumblrPost(src, title, height) {
+    return `
+<div class="tumblr-post-container">
+    <iframe
+        class="tumblr-embed"
+        src="${src}"
+        width="540"
+        height="${height}"
+        frameborder="0"
+        title="${title}">
+    </iframe>
+</div>`;
+}
+
+function togglePrintTumblrOverlay(link, updateUrl = true) {
+    if (currentPage !== "sd" || !activePrintSubLink) {
+        return;
+    }
+
+    const subcategory = activePrintSubLink.id.slice("print-".length);
+    if (activePrintOverlayLink === link) {
+        closePrintTumblrOverlay();
+        if (updateUrl) {
+            updatePageUrl(`sd/${subcategory}`);
+        }
+        return;
+    }
+
+    closePrintTumblrOverlay();
+    activePrintOverlayLink = link;
+    activePrintOverlayLink.classList.add("active");
+
+    const overlay = document.getElementById("print-tumblr-overlay");
+    overlay.innerHTML = renderPrintTumblrPost();
+    overlay.hidden = false;
+    overlay.onclick = (event) => {
+        if (event.target !== overlay) {
+            return;
+        }
+
+        const activeSubcategory = activePrintSubLink?.id.slice("print-".length);
+        closePrintTumblrOverlay();
+        if (activeSubcategory) {
+            updatePageUrl(`sd/${activeSubcategory}`);
+        }
+    };
+
+    if (updateUrl) {
+        updatePageUrl(`sd/${subcategory}/o`);
+    }
+}
+
+function closePrintTumblrOverlay() {
+    const overlay = document.getElementById("print-tumblr-overlay");
+    if (overlay) {
+        overlay.hidden = true;
+        overlay.innerHTML = "";
+    }
+
+    if (activePrintOverlayLink) {
+        activePrintOverlayLink.classList.remove("active");
+        activePrintOverlayLink = null;
+    }
+}
+
+function toggleWTumblrOverlay(link, updateUrl = true) {
+    if (currentPage !== "w") {
+        return;
+    }
+
+    if (activeWTumblrOverlayLink === link) {
+        closeWTumblrOverlay();
+        if (updateUrl) {
+            updatePageUrl("w");
+        }
+        return;
+    }
+
+    closeWTumblrOverlay();
+    activeWTumblrOverlayLink = link;
+    activeWTumblrOverlayLink.classList.add("active");
+
+    const overlay = document.getElementById("w-tumblr-overlay");
+    overlay.innerHTML = renderWTumblrPost();
+    overlay.hidden = false;
+    overlay.onclick = (event) => {
+        if (event.target !== overlay) {
+            return;
+        }
+
+        closeWTumblrOverlay();
+        updatePageUrl("w");
+    };
+
+    if (updateUrl) {
+        updatePageUrl("w/o");
+    }
+}
+
+function closeWTumblrOverlay() {
+    const overlay = document.getElementById("w-tumblr-overlay");
+    if (overlay) {
+        overlay.hidden = true;
+        overlay.innerHTML = "";
+    }
+
+    if (activeWTumblrOverlayLink) {
+        activeWTumblrOverlayLink.classList.remove("active");
+        activeWTumblrOverlayLink = null;
     }
 }
 
@@ -438,7 +575,6 @@ function renderWContent() {
         "20240425_230426.jpg",
         "20240605_012735.jpg",
         "20240608_223025.jpg",
-        "20240718_220130.jpg",
         "20240725_232142.jpg",
         "20241121_022416.jpg",
         "20250211_214418.jpg",
@@ -469,6 +605,12 @@ function renderWContent() {
     ];
     const wImage = (filename) =>
         `${appBasePath}pic/w/${filename.split("/").map(encodeURIComponent).join("/")}`;
+    const wImagesWithThreeOAccent = new Set([1, 5, 12, 15, 17, 24, 28, 32, 36]);
+    const wImageThreeOAccentPositions = new Map([
+        [12, "center-right"],
+        [17, "center-right"],
+        [32, "right"]
+    ]);
     const wImageOneBorder = (thickness) => {
         const horizontal = Array.from(
             { length: thickness },
@@ -479,13 +621,27 @@ function renderWContent() {
 
         return `<span class="w-image-one-border${borderClass}" aria-hidden="true"><span class="top">${horizontal}</span><span class="right">${vertical}</span><span class="bottom">${horizontal}</span><span class="left">${vertical}</span></span>`;
     };
-    const wImageSymbolBorder = (symbol, bottomRows = 1) => {
+    const wImageSymbolBorder = (
+        symbol,
+        bottomRows = 1,
+        withThreeOAccent = false,
+        accentPosition,
+        withNineOGrid = false
+    ) => {
         const horizontal = `${symbol} `.repeat(60);
         const vertical = `${symbol}\n`.repeat(100);
         const bottom = Array.from({ length: bottomRows }, () => horizontal).join("\n");
         const borderClass = bottomRows > 1 ? " bottom-heavy" : "";
+        const threeOs = "<span>o</span><span>o</span><span>o</span>";
+        const accentClass = `symbol-accent${accentPosition ? ` symbol-accent--${accentPosition}` : ""}`;
+        const threeOAccent = withThreeOAccent
+            ? `<span class="${accentClass}">${threeOs}</span>`
+            : "";
+        const nineOGrid = withNineOGrid
+            ? `<span class="symbol-grid-accent">${"<span>o</span>".repeat(9)}</span>`
+            : "";
 
-        return `<span class="w-image-one-border w-image-symbol-border${borderClass}" aria-hidden="true"><span class="top">${horizontal}</span><span class="right">${vertical}</span><span class="bottom">${bottom}</span><span class="left">${vertical}</span></span>`;
+        return `<span class="w-image-one-border w-image-symbol-border${borderClass}" aria-hidden="true">${threeOAccent}${nineOGrid}<span class="top">${horizontal}</span><span class="right">${vertical}</span><span class="bottom">${bottom}</span><span class="left">${vertical}</span></span>`;
     };
 
     return wImages.map((filename, index) => {
@@ -493,37 +649,47 @@ function renderWContent() {
         const isFlowerOverlay = filename === "20250329_001636.jpg";
         const isONumberOverlay = filename === "20250518_195425.jpg";
         const isSecondImage = index === 1;
+        const hasThreeOAccent = wImagesWithThreeOAccent.has(index);
+        const hasNineOGrid = index === 22;
         const isNumberOutline = index >= 3;
         const hasOverlay = isFlowerOverlay || isONumberOverlay
             || isSecondImage || isNumberOutline;
         const overlayMarkup = isFlowerOverlay
-            ? `<button type="button" class="w-image-ones" data-mode="fill"
-        aria-label="Toggle image overlay between flowers and a 1 border"
-        onclick="toggleWImageOverlay(this)">
+            ? `<div class="w-image-ones" data-mode="fill" aria-hidden="true"
+        onclick="toggleWImageFromText(this)">
     <span class="w-image-overlay-fill" aria-hidden="true">${"❀ ".repeat(2500)}</span>
     ${wImageOneBorder(1)}
-</button>`
+</div>`
             : isONumberOverlay
-                ? `<button type="button" class="w-image-ones" data-mode="fill"
-        aria-label="Toggle image overlay between o's and a 2-row 1 border"
-        onclick="toggleWImageOverlay(this)">
+                ? `<div class="w-image-ones" data-mode="fill" aria-hidden="true"
+        onclick="toggleWImageFromText(this)">
     <span class="w-image-overlay-fill" aria-hidden="true">${"o ".repeat(2500)}</span>
     ${wImageOneBorder(2)}
-</button>`
+ </div>`
                 : isSecondImage
-                    ? `<button type="button" class="w-image-ones show-one-border"
-        data-symbol="1" data-base-symbol="1" data-alt-symbol="o"
-        aria-label="Toggle outline between 1's and o's"
-        onclick="toggleWImageSymbol(this)">
-    ${wImageSymbolBorder("1", 5)}
-</button>`
+                    ? `<div class="w-image-ones show-one-border"
+        onclick="toggleWImageFromText(this)"
+        data-symbol="1" data-base-symbol="1" data-alt-symbol="o" aria-hidden="true">
+    ${wImageSymbolBorder(
+        "1",
+        5,
+        hasThreeOAccent,
+        wImageThreeOAccentPositions.get(index),
+        hasNineOGrid
+    )}
+ </div>`
                     : isNumberOutline
-                        ? `<button type="button" class="w-image-ones show-one-border"
-        data-symbol="1" data-base-symbol="1" data-alt-symbol="o"
-        aria-label="Toggle outline between 1's and o's"
-        onclick="toggleWImageSymbol(this)">
-    ${wImageSymbolBorder("1")}
-</button>`
+        ? `<div class="w-image-ones show-one-border"
+        onclick="toggleWImageFromText(this)"
+        data-symbol="1" data-base-symbol="1" data-alt-symbol="o" aria-hidden="true">
+    ${wImageSymbolBorder(
+        "1",
+        1,
+        hasThreeOAccent,
+        wImageThreeOAccentPositions.get(index),
+        hasNineOGrid
+    )}
+ </div>`
                         : "";
         const imageMarkup = hasOverlay
             ? `<div class="w-image-covered${isFlowerOverlay ? " w-image-covered-flowers" : ""}">
@@ -533,11 +699,29 @@ function renderWContent() {
             : image;
 
         return `
-<div class="w-item">
+<div class="w-item" data-image-number="${index + 1}">
     ${imageMarkup}
-    ${renderImageDescription()}
+    ${renderImageDescription("toggleWImageFromDescription(this)")}
     </div>`;
     }).join("");
+}
+
+function toggleWImageFromDescription(description) {
+    const overlay = description.parentElement.querySelector(".w-image-ones");
+    toggleWImageFromText(overlay);
+}
+
+function toggleWImageFromText(overlay) {
+    const description = overlay.closest(".w-item").querySelector(".image-description");
+    description.classList.remove("flash-red");
+    void description.offsetWidth;
+    description.classList.add("flash-red");
+
+    if (overlay.dataset.symbol !== undefined) {
+        toggleWImageSymbol(overlay);
+    } else {
+        toggleWImageOverlay(overlay);
+    }
 }
 
 function toggleWImageOverlay(overlay) {
@@ -574,6 +758,10 @@ function toggleWImageSymbol(overlay) {
         border.querySelector(".bottom").textContent = border.classList.contains("bottom-heavy")
             ? Array.from({ length: 5 }, () => horizontal).join("\n")
             : horizontal;
+        overlay.querySelectorAll(".symbol-accent, .symbol-grid-accent")
+            .forEach((accent) => {
+                accent.hidden = nextSymbol !== overlay.dataset.baseSymbol;
+            });
         overlay.dataset.symbol = nextSymbol;
         overlay.classList.remove("flash-red");
     }, { once: true });
@@ -804,7 +992,17 @@ function getPageFromUrl() {
     const route = window.location.pathname.slice(appBasePath.length).split("/").filter(Boolean);
 
     if (route[0] === "prints") {
-        return route[1] ? `sd/${route[1]}` : "sd";
+        if (!route[1]) {
+            return "sd";
+        }
+        if (route[1] === "o" && !route[2]) {
+            return "sd/lohne/o";
+        }
+        return `sd/${route.slice(1).join("/")}`;
+    }
+
+    if (route[0] === "w") {
+        return route[1] === "o" && !route[2] ? "w/o" : "w";
     }
 
     return /^o{1,20}$/.test(route[0] || "")
@@ -826,6 +1024,8 @@ function clearPageState() {
     document.getElementById("overlay")?.remove();
     document.getElementById("content").innerHTML = "";
     clearPrintSubcategory();
+    closeWTumblrOverlay();
+    document.getElementById("w-sub-nav").hidden = true;
 
     if (activeMainLink) {
         activeMainLink.classList.remove("active");
@@ -847,8 +1047,18 @@ function clearPageState() {
 
 function restorePageFromUrl() {
     const page = getPageFromUrl();
-    const printSubcategory = page.startsWith("sd/") ? page.slice(3) : null;
-    const mainPage = printSubcategory ? "sd" : page;
+    const wTumblrOverlay = page === "w/o";
+    const locationRoute = window.location.pathname.slice(appBasePath.length).split("/").filter(Boolean);
+    const parsedPrintRoute = page.startsWith("sd/") ? page.slice(3).split("/") : [];
+    const legacyPrintTumblrRoute = parsedPrintRoute.length === 1 && parsedPrintRoute[0] === "o";
+    const printRoute = legacyPrintTumblrRoute ? ["lohne", "o"] : parsedPrintRoute;
+    const printSubcategory = printRoute[0] || null;
+    const printTumblrOverlay = printRoute[1] === "o" && printRoute.length === 2;
+    const invalidPrintRoute = printRoute.length > 1 && !printTumblrOverlay;
+    const legacyPrintTumblrPath = locationRoute[0] === "prints"
+        && locationRoute[1] === "o"
+        && !locationRoute[2];
+    const mainPage = printSubcategory ? "sd" : wTumblrOverlay ? "w" : page;
     const link = mainPage ? findPageLink(mainPage) : null;
     const hasLegacyPageQuery = new URLSearchParams(window.location.search).has("page");
 
@@ -881,10 +1091,25 @@ function restorePageFromUrl() {
         if (activePrintSubLink !== subLink) {
             showPrintSubcategory(printSubcategory, subLink, false);
         }
+
+        if (printTumblrOverlay) {
+            togglePrintTumblrOverlay(document.getElementById("print-o"), false);
+        }
     }
 
-    if (hasLegacyPageQuery) {
-        updatePageUrl(printSubcategory ? `sd/${printSubcategory}` : mainPage, true);
+    if (wTumblrOverlay) {
+        toggleWTumblrOverlay(document.getElementById("w-o"), false);
+    }
+
+    if (hasLegacyPageQuery || legacyPrintTumblrRoute || legacyPrintTumblrPath || invalidPrintRoute) {
+        const canonicalPageRoute = wTumblrOverlay
+            ? "w/o"
+            : printTumblrOverlay
+                ? `sd/${printSubcategory}/o`
+                : printSubcategory
+                    ? `sd/${printSubcategory}`
+                    : mainPage;
+        updatePageUrl(canonicalPageRoute, true);
     }
 }
 
@@ -907,6 +1132,7 @@ if (document.readyState === "loading") {
 
 function showPage(page, link, updateUrl = true) {
     stopMirrorImageLoading();
+    closeWTumblrOverlay();
     const content = document.getElementById("content");
     let overlay = document.getElementById("overlay");
 
@@ -942,6 +1168,7 @@ function showPage(page, link, updateUrl = true) {
                 activeMainLink.classList.remove("active");
                 activeMainLink = null;
             }
+            document.getElementById("w-sub-nav").hidden = true;
             if (updateUrl) {
                 updatePageUrl(null);
             }
@@ -958,6 +1185,7 @@ function showPage(page, link, updateUrl = true) {
 
         currentPage = page;
         document.getElementById("print-sub-nav").hidden = page !== "sd";
+        document.getElementById("w-sub-nav").hidden = page !== "w";
         if (updateUrl) {
             updatePageUrl(page === "sd" ? "sd/lohne" : page);
         }

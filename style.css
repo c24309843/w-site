@@ -146,6 +146,34 @@ nav .nav-static {
     display: none;
 }
 
+#print-sub-nav #print-o {
+    position: fixed;
+    top: 40%;
+    right: 30px;
+    left: auto;
+}
+
+#w-sub-nav {
+    position: fixed;
+    top: 20px;
+    right: 10px;
+    left: auto;
+    display: flex;
+    z-index: 1000;
+    padding: 0;
+}
+
+#w-sub-nav[hidden] {
+    display: none;
+}
+
+#w-sub-nav #w-o {
+    position: fixed;
+    top: 35%;
+    right: 30px;
+    left: auto;
+}
+
 /* print layout */
 
 .print-item {
@@ -243,11 +271,17 @@ nav .nav-static {
     line-height: 1.15;
     overflow-wrap: anywhere;
     text-align: left;
-    cursor: pointer;
+    pointer-events: none;
 }
 
 .w-image-ones.flash-red {
     animation: o18-graph-flash 600ms ease-in-out;
+}
+
+.w-image-overlay-fill,
+.w-image-one-border > span {
+    pointer-events: auto;
+    cursor: pointer;
 }
 
 .w-image-one-border {
@@ -259,6 +293,43 @@ nav .nav-static {
 .w-image-one-border > span {
     position: absolute;
     overflow: hidden;
+}
+
+.w-image-one-border .symbol-accent {
+    top: 6.9em;
+    left: 20%;
+    right: 30%;
+    height: 1.15em;
+    display: flex;
+    justify-content: space-between;
+}
+
+.w-image-one-border .symbol-accent--center-right {
+    left: 30%;
+    right: 20%;
+}
+
+.w-image-one-border .symbol-accent--right {
+    left: 35%;
+    right: 15%;
+}
+
+.w-image-one-border .symbol-grid-accent {
+    top: 50%;
+    left: 50%;
+    width: 3em;
+    height: 3em;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    place-items: center;
+    line-height: 1em;
+    transform: translate(-50%, -50%);
+}
+
+.w-image-one-border .symbol-accent[hidden],
+.w-image-one-border .symbol-grid-accent[hidden] {
+    display: none;
 }
 
 .w-image-one-border .top,
@@ -668,11 +739,56 @@ nav .nav-static {
     height: 700px;
 }
 
+#print-tumblr-overlay,
+#w-tumblr-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+}
+
+#print-tumblr-overlay[hidden],
+#w-tumblr-overlay[hidden] {
+    display: none;
+}
+
+#print-tumblr-overlay .tumblr-post-container,
+#w-tumblr-overlay .tumblr-post-container {
+    position: fixed !important;
+    top: var(--viewport-center-y, 50%) !important;
+    left: var(--viewport-center-x, 50%) !important;
+    transform: translate(-50%, -50%) !important;
+    width: 540px;
+    height: 700px;
+    pointer-events: none;
+}
+
+#w-tumblr-overlay .tumblr-post-container {
+    height: 580px;
+}
+
 #overlay .tumblr-embed {
     display: block;
     width: 540px;
     height: 700px;
     border: none;
+}
+
+#print-tumblr-overlay .tumblr-embed,
+#w-tumblr-overlay .tumblr-embed {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    transform: none;
+    display: block;
+    width: 540px;
+    height: 700px;
+    border: none;
+    background: transparent;
+    pointer-events: auto;
+}
+
+#w-tumblr-overlay .tumblr-embed {
+    height: 580px;
 }
 
 /* o13 Twitch video */

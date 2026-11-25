@@ -9,9 +9,9 @@
 <script>
     const requestedPath = window.location.pathname + window.location.search + window.location.hash;
     const path = window.location.pathname.replace(/\/+$/, "");
-    const printsPathIndex = path.indexOf("/prints/");
-    const basePath = printsPathIndex >= 0
-        ? path.slice(0, printsPathIndex + 1) || "/"
+    const nestedPathIndex = path.search(/\/(?:prints|w)\//);
+    const basePath = nestedPathIndex >= 0
+        ? path.slice(0, nestedPathIndex + 1) || "/"
         : path.slice(0, path.lastIndexOf("/") + 1) || "/";
     window.location.replace(`${basePath}?__route=${encodeURIComponent(requestedPath)}`);
 </script>

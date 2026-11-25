@@ -54,10 +54,18 @@
 <nav id="print-sub-nav" aria-label="Print subcategories" hidden>
     <a id="print-lohne" href="#" onclick="showPrintSubcategory('lohne', this); return false;">::::: löhne, germany</a>
     <a id="print-france" href="#" onclick="showPrintSubcategory('france', this); return false;">::::: france</a>
+    <a id="print-o" href="#" onclick="togglePrintTumblrOverlay(this); return false;">o</a>
+</nav>
+
+<nav id="w-sub-nav" aria-label="W subcategories" hidden>
+    <a id="w-o" href="#" onclick="toggleWTumblrOverlay(this); return false;">o</a>
 </nav>
 
 <main id="content">
 </main>
+
+<div id="print-tumblr-overlay" hidden></div>
+<div id="w-tumblr-overlay" hidden></div>
 
 <script src="script.js"></script>
 </body>
