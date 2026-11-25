@@ -163,6 +163,80 @@ function startSequentialImageLoading(root = document) {
     loadNext();
 }
 
+function restoreMirrorOverlayStates(content) {
+    // Restore mirror overlay states
+    requestAnimationFrame(() => {
+        content.querySelectorAll(".mirror-item").forEach((item) => {
+            const filename = item.dataset.imageFilename;
+            const description = item.querySelector(".image-description");
+            const savedState = overlayStates.get(filename);
+            
+            if (description && savedState && savedState.type === "mirror") {
+                const revealedLines = savedState.revealedLines || 0;
+                description.dataset.revealedLines = String(revealedLines);
+                
+                // Restore visible lines
+                const lines = item.querySelectorAll(".mirror-image-overlay-line");
+                for (let i = 0; i < revealedLines && i < lines.length; i++) {
+                    const lineIndex = lines.length - i - 1;
+                    if (lineIndex >= 0) {
+                        lines[lineIndex].hidden = false;
+                    }
+                }
+            }
+        });
+    });
+}
+
+function restorePrintOverlayStates(content) {
+    // Restore print overlay states
+    requestAnimationFrame(() => {
+        content.querySelectorAll(".print-item").forEach((item) => {
+            const filename = item.dataset.imageFilename;
+            const savedState = overlayStates.get(filename);
+            
+            if (savedState && savedState.type === "print" && savedState.duplicateCount > 0) {
+                const firstDescription = item.querySelector(".image-description");
+                if (firstDescription) {
+                    // Recreate the duplicates that existed before
+                    for (let i = 0; i < savedState.duplicateCount; i++) {
+                        const duplicate = firstDescription.cloneNode(true);
+                        duplicate.classList.remove("flash-red");
+                        firstDescription.insertAdjacentElement("afterend", duplicate);
+                    }
+                }
+            }
+        });
+    });
+}
+
+function saveOverlayStatesToStorage() {
+    // Convert Map to object for JSON serialization
+    const stateObj = {};
+    overlayStates.forEach((value, key) => {
+        stateObj[key] = value;
+    });
+    try {
+        localStorage.setItem("overlayInteractionStates", JSON.stringify(stateObj));
+    } catch (e) {
+        console.warn("Failed to save overlay states to localStorage:", e);
+    }
+}
+
+function loadOverlayStatesFromStorage() {
+    try {
+        const stored = localStorage.getItem("overlayInteractionStates");
+        if (stored) {
+            const stateObj = JSON.parse(stored);
+            Object.entries(stateObj).forEach(([key, value]) => {
+                overlayStates.set(key, value);
+            });
+        }
+    } catch (e) {
+        console.warn("Failed to load overlay states from localStorage:", e);
+    }
+}
+
 function restoreScrollAfterLoading(content, page, savedScroll) {
     if (savedScroll === undefined) {
         return;
@@ -325,6 +399,8 @@ function showPrintSubcategory(category, link, updateUrl = true) {
         if (activePrintSubLink) {
             const subcategoryKey = `sd-${activePrintSubLink.id.replace('print-', '')}`;
             scrollPositions.set(subcategoryKey, content.scrollTop);
+            // Save overlay states before closing
+            saveOverlayStatesToStorage();
         }
 
         activePrintSubLink.classList.remove("active");
@@ -343,6 +419,8 @@ function showPrintSubcategory(category, link, updateUrl = true) {
     if (activePrintSubLink) {
         const subcategoryKey = `sd-${activePrintSubLink.id.replace('print-', '')}`;
         scrollPositions.set(subcategoryKey, content.scrollTop);
+        // Save overlay states before switching
+        saveOverlayStatesToStorage();
     }
 
     if (activePrintSubLink) {
@@ -355,6 +433,8 @@ function showPrintSubcategory(category, link, updateUrl = true) {
     if (category === "lohne") {
         content.innerHTML = renderLohneContent();
         startSequentialImageLoading(content);
+        // Restore print overlay states
+        restorePrintOverlayStates(content);
     } else {
         content.innerHTML = "";
     }
@@ -497,6 +577,32 @@ function closeWTumblrOverlay() {
     }
 }
 
+function duplicatePrintDescription(description) {
+    const item = description.parentElement;
+    const duplicate = description.cloneNode(true);
+    duplicate.classList.remove("flash-red");
+    description.insertAdjacentElement("afterend", duplicate);
+
+    const descriptions = item.querySelectorAll(".image-description");
+    const milestoneEndings = ["c:::", "o:::", "c:::", "k:::"];
+    descriptions.forEach((text, index) => {
+        text.querySelector(".image-description-last-line").textContent =
+            milestoneEndings[index - 24] || ":::::";
+    });
+    descriptions.forEach((text) => text.classList.remove("flash-red"));
+    void description.offsetWidth;
+    descriptions.forEach((text) => text.classList.add("flash-red"));
+    
+    // Save overlay state for prints
+    const filename = item.dataset.imageFilename;
+    if (filename) {
+        overlayStates.set(filename, {
+            duplicateCount: descriptions.length - 1,
+            type: "print"
+        });
+    }
+}
+
 function duplicateImageDescription(description) {
     const item = description.parentElement;
     const duplicate = description.cloneNode(true);
@@ -534,6 +640,15 @@ function revealMirrorImageLine(description) {
     void line.offsetWidth;
     line.classList.add("flash-red");
     description.dataset.revealedLines = String(revealedLines + 1);
+    
+    // Save overlay state for mirror
+    const filename = item.dataset.imageFilename;
+    if (filename) {
+        overlayStates.set(filename, {
+            revealedLines: revealedLines + 1,
+            type: "mirror"
+        });
+    }
 }
 
 function renderImageDescription(onClick = "duplicateImageDescription(this)") {
@@ -554,25 +669,25 @@ function renderLohneContent() {
         `${appBasePath}pic/print/${encodeURIComponent(filename)}`;
 
     return `
-<div class="print-item">
+<div class="print-item" data-image-filename="Scan_20260119 (2).jpg">
     <a href="${printImage("Scan_20260119 (2).jpg")}" target="_blank">
         <img data-sequential-src="${printImage("Scan_20260119 (2).jpg")}" width="1251" height="1807" class="sequential-image-loading">
     </a>
-    ${renderImageDescription()}
+    ${renderImageDescription("duplicatePrintDescription(this)")}
 </div>
 
-<div class="print-item">
+<div class="print-item" data-image-filename="Scan_20260119.jpg">
     <a href="${printImage("Scan_20260119.jpg")}" target="_blank">
         <img data-sequential-src="${printImage("Scan_20260119.jpg")}" width="3327" height="2125" class="sequential-image-loading">
     </a>
-    ${renderImageDescription()}
+    ${renderImageDescription("duplicatePrintDescription(this)")}
 </div>
 
-<div class="print-item">
+<div class="print-item" data-image-filename="Scan_20260119 (20).jpg">
     <a href="${printImage("Scan_20260119 (20).jpg")}" target="_blank">
         <img data-sequential-src="${printImage("Scan_20260119 (20).jpg")}" width="3252" height="2112" class="sequential-image-loading">
     </a>
-    ${renderImageDescription()}
+    ${renderImageDescription("duplicatePrintDescription(this)")}
 </div>
 
 <a id="print-text" class="graph-text" href="#" onclick="togglePrintText(this); return false;">
@@ -591,7 +706,7 @@ function renderMirrorItems(startIndex, endIndex) {
     return mirrorImages.slice(startIndex, endIndex).map((filename) => {
         const image = mirrorImage(filename);
         return `
-<div class="mirror-item">
+<div class="mirror-item" data-image-filename="${filename}">
     <div class="mirror-image-link">
         <img data-sequential-src="${image}" width="600" decoding="async" class="sequential-image-loading">
         <div class="mirror-image-overlay" aria-hidden="true">
@@ -1288,9 +1403,13 @@ if (window.visualViewport) {
 }
 
 if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", fitSubNavigation);
+    document.addEventListener("DOMContentLoaded", () => {
+        fitSubNavigation();
+        loadOverlayStatesFromStorage();
+    });
 } else {
     fitSubNavigation();
+    loadOverlayStatesFromStorage();
 }
 
 
@@ -1329,6 +1448,8 @@ function showPage(page, link, updateUrl = true) {
         if (currentPage === page) {
             if (currentPage) {
                 scrollPositions.set(currentPage, window.scrollY);
+                // Save overlay interaction states before closing
+                saveOverlayStatesToStorage();
             }
             content.innerHTML = "";
             currentPage = null;
@@ -1347,6 +1468,8 @@ function showPage(page, link, updateUrl = true) {
         // switch main category - save scroll position of previous page
         if (currentPage) {
             scrollPositions.set(currentPage, window.scrollY);
+            // Save overlay interaction states before switching
+            saveOverlayStatesToStorage();
         }
 
         if (activeMainLink) {
@@ -1469,6 +1592,9 @@ function showPage(page, link, updateUrl = true) {
             content.innerHTML = renderMirrorContent();
             startSequentialImageLoading(content);
             startMirrorImageLoading();
+            
+            // Restore mirror overlay states
+            restoreMirrorOverlayStates(content);
         }
 
 
