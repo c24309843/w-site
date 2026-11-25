@@ -364,6 +364,10 @@ nav .nav-static {
     white-space: pre;
 }
 
+.mirror-image-overlay-line.flash-red {
+    animation: o18-graph-flash 600ms ease-in-out;
+}
+
 .mirror-image-overlay-line[hidden] {
     display: none;
 }

@@ -288,7 +288,11 @@ function revealMirrorImageLine(description) {
         return;
     }
 
-    lines[nextLineIndex].hidden = false;
+    const line = lines[nextLineIndex];
+    line.hidden = false;
+    line.classList.remove("flash-red");
+    void line.offsetWidth;
+    line.classList.add("flash-red");
     description.dataset.revealedLines = String(revealedLines + 1);
 }
 
