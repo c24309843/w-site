@@ -14,6 +14,8 @@ let mirrorImageObserver = null;
 let sequentialImageLoading = false;
 let sequentialImageQueue = [];
 const appBasePath = new URL(".", document.currentScript.src).pathname;
+const scrollPositions = new Map();
+const overlayStates = new Map();
 const mirrorImages = [
     "20251224_114358.jpg",
     "20251129_130420.jpg",
@@ -143,6 +145,8 @@ function startSequentialImageLoading(root = document) {
 
         if (!image) {
             sequentialImageLoading = false;
+            // Dispatch event when all sequential images are loaded
+            window.dispatchEvent(new CustomEvent("sequentialImagesLoaded"));
             return;
         }
 
@@ -157,6 +161,40 @@ function startSequentialImageLoading(root = document) {
     };
 
     loadNext();
+}
+
+function restoreScrollAfterLoading(content, page, savedScroll) {
+    if (savedScroll === undefined) {
+        return;
+    }
+
+    const restoreScroll = () => {
+        // The page scrolls on the window, not on the content element
+        window.scrollTo(0, savedScroll);
+    };
+
+    // For pages with sequential images, wait for images to load
+    if (["w", "sd", "side-mirror"].includes(page)) {
+        // Multiple attempts to restore scroll at different times
+        // This handles various timing scenarios (cached images, slow loading, etc.)
+        setTimeout(restoreScroll, 10);
+        setTimeout(restoreScroll, 50);
+        setTimeout(restoreScroll, 100);
+        
+        // Also listen for the event when images finish loading
+        const handleImagesLoaded = () => {
+            // After images load, restore the scroll position
+            restoreScroll();
+        };
+        
+        // Add listener with a small delay to ensure it's registered before event fires
+        setTimeout(() => {
+            window.addEventListener("sequentialImagesLoaded", handleImagesLoaded, { once: true });
+        }, 0);
+    } else {
+        // For pages without images, restore with small delay
+        setTimeout(restoreScroll, 50);
+    }
 }
 
 function cycleEroticsText(element) {
@@ -282,14 +320,29 @@ function showPrintSubcategory(category, link, updateUrl = true) {
     closePrintTumblrOverlay();
 
     if (activePrintSubLink === link) {
+        // Save current subcategory scroll position before closing
+        const content = document.getElementById("content");
+        if (activePrintSubLink) {
+            const subcategoryKey = `sd-${activePrintSubLink.id.replace('print-', '')}`;
+            scrollPositions.set(subcategoryKey, content.scrollTop);
+        }
+
         activePrintSubLink.classList.remove("active");
         activePrintSubLink = null;
-        document.getElementById("content").innerHTML = "";
+        content.innerHTML = "";
 
         if (updateUrl) {
             updatePageUrl("sd");
         }
         return;
+    }
+
+    const content = document.getElementById("content");
+
+    // Save current subcategory scroll position before switching
+    if (activePrintSubLink) {
+        const subcategoryKey = `sd-${activePrintSubLink.id.replace('print-', '')}`;
+        scrollPositions.set(subcategoryKey, content.scrollTop);
     }
 
     if (activePrintSubLink) {
@@ -298,13 +351,18 @@ function showPrintSubcategory(category, link, updateUrl = true) {
 
     activePrintSubLink = link;
     activePrintSubLink.classList.add("active");
-    const content = document.getElementById("content");
+
     if (category === "lohne") {
         content.innerHTML = renderLohneContent();
         startSequentialImageLoading(content);
     } else {
         content.innerHTML = "";
     }
+
+    // Restore subcategory scroll position
+    const subcategoryKey = `sd-${category}`;
+    const savedScroll = scrollPositions.get(subcategoryKey);
+    restoreScrollAfterLoading(content, "sd", savedScroll);
 
     if (updateUrl) {
         updatePageUrl(`sd/${category}`);
@@ -610,6 +668,7 @@ function startMirrorImageLoading() {
 
 function renderWContent() {
     const wImages = [
+        "20250601_210641.jpg",
         "20250329_001636.jpg",
         "P1322318 (1).JPG",
         "20250518_195425.jpg",
@@ -636,7 +695,6 @@ function renderWContent() {
         "20250518_233200.jpg",
         "20250525_220553.jpg",
         "20250601_210220.jpg",
-        "20250601_210641.jpg",
         "20250602_000623.jpg",
         "20250609_014849.jpg",
         "20250609_014852.jpg",
@@ -656,21 +714,22 @@ function renderWContent() {
         ["20250329_001636.jpg", { flowerOverlay: true }],
         // O number overlay
         ["20250518_195425.jpg", { oNumberOverlay: true }],
-        // Three O accents - all these images have three o marks in their border
-        ["P1322318 (1).JPG", { threeOAccent: true, accentPosition: "center-right" }],
-        ["20240605_014712.jpg", { threeOAccent: true }],
-        ["20250211_214418.jpg", { threeOAccent: true, accentPosition: "center-right" }],
-        ["20250220_223023.jpg", { threeOAccent: true }],
-        ["20250314_225400.jpg", { threeOAccent: true, accentPosition: "center-right" }],
-        ["20250314_213700.jpg", { threeOAccent: true }],
-        ["20250405_022816.jpg", { threeOAccent: true }],
-        ["20250409_223136.jpg", { threeOAccent: true }],
-        ["20250428_001046.jpg", { threeOAccent: true }],
-        ["20250507_004140.jpg", { threeOAccent: true }],
-        ["20250601_210220.jpg", { threeOAccent: true }],
-        ["20250601_210641.jpg", { threeOAccent: true }],
+        // Three O accents that move down and left
+        ["P1322318 (1).JPG", { threeOAccent: true, accentPosition: "center-right", threeMovingOs: true }],
+        ["20240605_014712.jpg", { threeOAccent: true, threeMovingOs: true }],
+        ["20250211_214418.jpg", { threeOAccent: true, accentPosition: "center-right", threeMovingOs: true }],
+        ["20250220_223023.jpg", { threeOAccent: true, threeMovingOs: true }],
+        ["20250314_225400.jpg", { threeOAccent: true, accentPosition: "center-right", threeMovingOs: true }],
+        ["20250314_213700.jpg", { threeOAccent: true, threeMovingOs: true }],
+        ["20250405_022816.jpg", { threeOAccent: true, threeMovingOs: true }],
+        ["20250409_223136.jpg", { threeOAccent: true, threeMovingOs: true }],
+        ["20250428_001046.jpg", { threeOAccent: true, threeMovingOs: true }],
+        ["20250507_004140.jpg", { threeOAccent: true, threeMovingOs: true }],
+        ["20250518_233200.jpg", { threeOAccent: true, threeMovingOs: true }],
+        ["20250601_210220.jpg", { threeOAccent: true, threeMovingOs: true }],
+        ["20250601_210641.jpg", { threeOAccent: true, threeMovingOs: true }],
         ["20250622_211727.jpg", { threeOAccent: true, accentPosition: "right", singleMovingO: true }],
-        ["20250616_212118.jpg", { threeOAccent: true }],
+        ["20250616_212118.jpg", { threeOAccent: true, threeMovingOs: true }],
         // Nine O grid
         ["20250506_232944.jpg", { nineOGrid: true }],
         // Three moving o's on last image
@@ -701,12 +760,10 @@ function renderWContent() {
         const bottom = Array.from({ length: bottomRows }, () => horizontal).join("\n");
         const borderClass = bottomRows > 1 ? " bottom-heavy" : "";
         const threeOs = "<span>o</span><span>o</span><span>o</span>";
-        const accentClass = `symbol-accent${accentPosition ? ` symbol-accent--${accentPosition}` : ""}${withMovingOAccent ? " symbol-accent--moving" : ""}${withSingleMovingO ? " symbol-accent--single-moving" : ""}`;
-        const threeOAccent = withThreeOAccent
+        const accentClass = `symbol-accent${accentPosition ? ` symbol-accent--${accentPosition}` : ""}${withMovingOAccent ? " symbol-accent--moving" : ""}${withSingleMovingO ? " symbol-accent--single-moving" : ""}${withThreeMovingOs ? " symbol-accent--triple-moving" : ""}`;
+        const threeOAccent = (withThreeOAccent || withThreeMovingOs)
             ? `<span class="${accentClass}">${withSingleMovingO ? "<span>o</span>" : threeOs}</span>`
-            : withThreeMovingOs
-                ? `<span class="${accentClass} symbol-accent--triple-moving">${threeOs}</span>`
-                : "";
+            : "";
         const nineOGrid = withNineOGrid
             ? `<span class="symbol-grid-accent">${"<span>o</span>".repeat(9)}</span>`
             : "";
@@ -819,12 +876,19 @@ function toggleWImageOverlay(overlay) {
         return;
     }
 
+    const filename = overlay.closest(".w-item").dataset.imageFilename;
     const nextMode = overlay.dataset.mode === "border" ? "fill" : "border";
     overlay.classList.add("flash-red");
     overlay.addEventListener("animationend", () => {
         overlay.dataset.mode = nextMode;
         overlay.classList.toggle("show-one-border", nextMode === "border");
         overlay.classList.remove("flash-red");
+        
+        // Save overlay state
+        overlayStates.set(filename, {
+            symbol: overlay.dataset.symbol,
+            mode: nextMode
+        });
     }, { once: true });
 }
 
@@ -833,6 +897,7 @@ function toggleWImageSymbol(overlay) {
         return;
     }
 
+    const filename = overlay.closest(".w-item").dataset.imageFilename;
     const nextSymbol = overlay.dataset.symbol === overlay.dataset.baseSymbol
         ? overlay.dataset.altSymbol
         : overlay.dataset.baseSymbol;
@@ -850,11 +915,21 @@ function toggleWImageSymbol(overlay) {
             : horizontal;
         overlay.querySelectorAll(".symbol-accent, .symbol-grid-accent")
             .forEach((accent) => {
-                accent.hidden = !accent.classList.contains("symbol-accent--moving")
-                    && nextSymbol !== overlay.dataset.baseSymbol;
+                // Keep moving accents (single or triple) always visible
+                const isMovingAccent = accent.classList.contains("symbol-accent--moving") 
+                    || accent.classList.contains("symbol-accent--single-moving")
+                    || accent.classList.contains("symbol-accent--triple-moving");
+                // Hide non-moving accents only when symbol is not baseSymbol
+                accent.hidden = !isMovingAccent && nextSymbol !== overlay.dataset.baseSymbol;
             });
         overlay.dataset.symbol = nextSymbol;
         overlay.classList.remove("flash-red");
+        
+        // Save overlay state
+        overlayStates.set(filename, {
+            symbol: nextSymbol,
+            mode: overlay.dataset.mode
+        });
     }, { once: true });
 }
 
@@ -1252,6 +1327,9 @@ function showPage(page, link, updateUrl = true) {
 
         // clicking the active main category closes it
         if (currentPage === page) {
+            if (currentPage) {
+                scrollPositions.set(currentPage, window.scrollY);
+            }
             content.innerHTML = "";
             currentPage = null;
 
@@ -1266,7 +1344,11 @@ function showPage(page, link, updateUrl = true) {
             return;
         }
 
-        // switch main category
+        // switch main category - save scroll position of previous page
+        if (currentPage) {
+            scrollPositions.set(currentPage, window.scrollY);
+        }
+
         if (activeMainLink) {
             activeMainLink.classList.remove("active");
         }
@@ -1300,6 +1382,45 @@ function showPage(page, link, updateUrl = true) {
         if (page === "w") {
             content.innerHTML = renderWContent();
             startSequentialImageLoading(content);
+            
+            // Restore overlay states for w page
+            requestAnimationFrame(() => {
+                content.querySelectorAll(".w-item").forEach((item) => {
+                    const filename = item.dataset.imageFilename;
+                    const overlay = item.querySelector(".w-image-ones");
+                    const savedState = overlayStates.get(filename);
+                    
+                    if (overlay && savedState) {
+                        // Restore symbol state
+                        if (savedState.symbol !== undefined && overlay.dataset.symbol !== savedState.symbol) {
+                            overlay.dataset.symbol = savedState.symbol;
+                            const border = overlay.querySelector(".w-image-symbol-border");
+                            if (border) {
+                                const symbol = savedState.symbol;
+                                const horizontal = `${symbol} `.repeat(60);
+                                const vertical = `${symbol}\n`.repeat(100);
+                                border.querySelector(".top").textContent = horizontal;
+                                border.querySelector(".right").textContent = vertical;
+                                border.querySelector(".left").textContent = vertical;
+                                border.querySelector(".bottom").textContent = border.classList.contains("bottom-heavy")
+                                    ? Array.from({ length: 5 }, () => horizontal).join("\n")
+                                    : horizontal;
+                                overlay.querySelectorAll(".symbol-accent, .symbol-grid-accent")
+                                    .forEach((accent) => {
+                                        accent.hidden = !accent.classList.contains("symbol-accent--moving")
+                                            && symbol !== overlay.dataset.baseSymbol;
+                                    });
+                            }
+                        }
+                        
+                        // Restore mode state
+                        if (savedState.mode !== undefined && overlay.dataset.mode !== savedState.mode) {
+                            overlay.dataset.mode = savedState.mode;
+                            overlay.classList.toggle("show-one-border", savedState.mode === "border");
+                        }
+                    }
+                });
+            });
         }
 
 
@@ -1358,12 +1479,15 @@ function showPage(page, link, updateUrl = true) {
         }
 
 
-
         /* cock */
 
         if (page === "cock") {
             content.innerHTML = "";
         }
+
+        // Restore scroll position after rendering new content
+        const savedScroll = scrollPositions.get(page);
+        restoreScrollAfterLoading(content, page, savedScroll);
 
         return;
     }
