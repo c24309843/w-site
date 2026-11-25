@@ -578,7 +578,6 @@ function renderWContent() {
         "20240725_232142.jpg",
         "20241121_022416.jpg",
         "20250211_214418.jpg",
-        "20250216_004753.jpg",
         "20250220_215338.jpg",
         "20250220_223023.jpg",
         "20250314_213700.jpg",
@@ -605,11 +604,29 @@ function renderWContent() {
     ];
     const wImage = (filename) =>
         `${appBasePath}pic/w/${filename.split("/").map(encodeURIComponent).join("/")}`;
-    const wImagesWithThreeOAccent = new Set([1, 5, 12, 15, 17, 24, 28, 32, 36]);
-    const wImageThreeOAccentPositions = new Map([
-        [12, "center-right"],
-        [17, "center-right"],
-        [32, "right"]
+    
+    // Map filename to special features (overlays, accents, grids)
+    const wImageSpecialFeatures = new Map([
+        // Flower overlay
+        ["20250329_001636.jpg", { flowerOverlay: true }],
+        // O number overlay
+        ["20250518_195425.jpg", { oNumberOverlay: true }],
+        // Three O accents
+        ["P1322318 (1).JPG", { threeOAccent: true, accentPosition: "center-right" }],
+        ["20240509_234712.jpg", { threeOAccent: true, accentPosition: "center-right" }],
+        ["20250211_214418.jpg", { threeOAccent: true }],
+        ["20250220_215338.jpg", { threeOAccent: true, accentPosition: "center-right" }],
+        ["20250314_225400.jpg", { threeOAccent: true, accentPosition: "center-right" }],
+        ["20250409_223136.jpg", { threeOAccent: true }],
+        ["20250428_001046.jpg", { threeOAccent: true }],
+        ["20250601_210641.jpg", { threeOAccent: true }],
+        ["20250622_211727.jpg", { threeOAccent: true, accentPosition: "right" }],
+        // Nine O grid
+        ["20250506_232944.jpg", { nineOGrid: true }],
+        // Moving accents (single moving o on second-to-last image)
+        ["20250526_010739.jpg", { singleMovingO: true }],
+        // Three moving o's on last image
+        ["New folder/20260111_192024.jpg", { threeMovingOs: true }]
     ]);
     const wImageOneBorder = (thickness) => {
         const horizontal = Array.from(
@@ -627,17 +644,21 @@ function renderWContent() {
         withThreeOAccent = false,
         accentPosition,
         withNineOGrid = false,
-        withMovingOAccent = false
+        withMovingOAccent = false,
+        withSingleMovingO = false,
+        withThreeMovingOs = false
     ) => {
         const horizontal = `${symbol} `.repeat(60);
         const vertical = `${symbol}\n`.repeat(100);
         const bottom = Array.from({ length: bottomRows }, () => horizontal).join("\n");
         const borderClass = bottomRows > 1 ? " bottom-heavy" : "";
         const threeOs = "<span>o</span><span>o</span><span>o</span>";
-        const accentClass = `symbol-accent${accentPosition ? ` symbol-accent--${accentPosition}` : ""}${withMovingOAccent ? " symbol-accent--moving" : ""}`;
+        const accentClass = `symbol-accent${accentPosition ? ` symbol-accent--${accentPosition}` : ""}${withMovingOAccent ? " symbol-accent--moving" : ""}${withSingleMovingO ? " symbol-accent--single-moving" : ""}`;
         const threeOAccent = withThreeOAccent
-            ? `<span class="${accentClass}">${threeOs}</span>`
-            : "";
+            ? `<span class="${accentClass}">${withSingleMovingO ? "<span>o</span>" : threeOs}</span>`
+            : withThreeMovingOs
+                ? `<span class="${accentClass} symbol-accent--triple-moving">${threeOs}</span>`
+                : "";
         const nineOGrid = withNineOGrid
             ? `<span class="symbol-grid-accent">${"<span>o</span>".repeat(9)}</span>`
             : "";
@@ -647,15 +668,20 @@ function renderWContent() {
 
     return wImages.map((filename, index) => {
         const image = `<img data-sequential-src="${wImage(filename)}" width="600" class="sequential-image-loading">`;
-        const isFlowerOverlay = filename === "20250329_001636.jpg";
-        const isONumberOverlay = filename === "20250518_195425.jpg";
-        const isSecondImage = index === 1;
-        const hasThreeOAccent = wImagesWithThreeOAccent.has(index);
-        const hasNineOGrid = index === 22;
-        const hasMovingOAccent = index === wImages.length - 1;
-        const isNumberOutline = index >= 3;
-        const hasOverlay = isFlowerOverlay || isONumberOverlay
-            || isSecondImage || isNumberOutline;
+        const features = wImageSpecialFeatures.get(filename) || {};
+        const isFlowerOverlay = features.flowerOverlay || false;
+        const isONumberOverlay = features.oNumberOverlay || false;
+        const isSecondImage = filename === "P1322318 (1).JPG";
+        const hasThreeOAccent = features.threeOAccent || false;
+        const hasNineOGrid = features.nineOGrid || false;
+        const hasSingleMovingO = features.singleMovingO || false;
+        const hasThreeMovingOs = features.threeMovingOs || false;
+        const hasMovingOAccent = hasSingleMovingO || hasThreeMovingOs;
+        const withSingleMovingO = hasSingleMovingO;
+        const withThreeMovingOs = hasThreeMovingOs;
+        const accentPosition = features.accentPosition || null;
+        const isNumberOutline = !isFlowerOverlay && !isONumberOverlay;
+        const hasOverlay = isFlowerOverlay || isONumberOverlay || isSecondImage || isNumberOutline;
         const overlayMarkup = isFlowerOverlay
             ? `<div class="w-image-ones" data-mode="fill" aria-hidden="true"
         onclick="toggleWImageFromText(this)">
@@ -676,8 +702,11 @@ function renderWContent() {
         "1",
         5,
         hasThreeOAccent,
-        wImageThreeOAccentPositions.get(index),
-        hasNineOGrid
+        accentPosition,
+        hasNineOGrid,
+        false,
+        withSingleMovingO,
+        withThreeMovingOs
     )}
  </div>`
                     : isNumberOutline
@@ -688,9 +717,11 @@ function renderWContent() {
         "1",
         1,
         hasThreeOAccent,
-        wImageThreeOAccentPositions.get(index),
+        accentPosition,
         hasNineOGrid,
-        hasMovingOAccent
+        hasMovingOAccent,
+        withSingleMovingO,
+        withThreeMovingOs
     )}
  </div>`
                         : "";
@@ -702,7 +733,7 @@ function renderWContent() {
             : image;
 
         return `
-<div class="w-item" data-image-number="${index + 1}">
+<div class="w-item" data-image-number="${index + 1}" data-image-filename="${filename}">
     ${imageMarkup}
     ${renderImageDescription("toggleWImageFromDescription(this)")}
     </div>`;
@@ -720,7 +751,7 @@ function toggleWImageFromText(overlay) {
     void description.offsetWidth;
     description.classList.add("flash-red");
 
-    const movingAccent = overlay.querySelector(".symbol-accent--moving");
+    const movingAccent = overlay.querySelector(".symbol-accent--moving, .symbol-accent--single-moving, .symbol-accent--triple-moving");
     if (movingAccent) {
         const nextLine = Number(movingAccent.dataset.line || 0) + 1;
         movingAccent.dataset.line = String(nextLine);

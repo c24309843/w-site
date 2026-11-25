@@ -314,6 +314,44 @@ nav .nav-static {
     right: 15%;
 }
 
+.w-image-one-border .symbol-accent--moving {
+    top: 8.05em;
+    left: 20%;
+    right: 30%;
+    height: 1.15em;
+    display: flex;
+    justify-content: space-between;
+}
+
+.w-image-one-border .symbol-accent--moving > span:only-child {
+    width: 1em;
+    left: auto !important;
+    right: 2.4em !important;
+    top: 6.9em !important;
+    justify-content: center;
+    align-items: center;
+}
+
+.w-image-one-border .symbol-accent--single-moving {
+    top: 6.9em;
+    left: auto !important;
+    right: 4.8em !important;
+    width: 1em;
+    height: 1.15em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.w-image-one-border .symbol-accent--triple-moving {
+    top: 6.9em;
+    left: 20%;
+    right: 30%;
+    height: 1.15em;
+    display: flex;
+    justify-content: space-between;
+}
+
 .w-image-one-border .symbol-grid-accent {
     top: 50%;
     left: 50%;
