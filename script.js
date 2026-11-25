@@ -9,6 +9,8 @@ let activeBottomSubLink = null;
 let activePrintSubLink = null;
 let twitchPlayerLoader = null;
 let mirrorImageObserver = null;
+let sequentialImageLoading = false;
+let sequentialImageQueue = [];
 const appBasePath = new URL(".", document.currentScript.src).pathname;
 const mirrorImages = [
     "20250918_184401.jpg",
@@ -65,6 +67,60 @@ const o18GraphOptions = [
     "<<<ooo>>>\n   o:o    \n    oo    \n<<<o:o>>>\n    o:o   \n    o:o   \n    o o   \n    o o   \n    o o   ",
     "<<<ooo>>>\n   o:o    \n    oo    \n<<<o:o>>>\n    o:o   \n    o:o   \n   o  o   \n  o   o   \n o     o"
 ];
+const eroticsTextOptions = [
+    "not yet\n:::::::::::::::::::::",
+    "but i have many unrealized ideas for erotics\n:::::::::::::::::::::",
+    "if you want to collab, please contact me\n:::::::::::::::::::::"
+];
+
+function startSequentialImageLoading(root = document) {
+    const images = Array.from(root.querySelectorAll("img[data-sequential-src]"));
+
+    images.forEach((image) => {
+        if (!sequentialImageQueue.includes(image)) {
+            sequentialImageQueue.push(image);
+        }
+    });
+
+    if (sequentialImageLoading) {
+        return;
+    }
+
+    sequentialImageLoading = true;
+
+    const loadNext = () => {
+        let image = sequentialImageQueue.shift();
+
+        while (image && (!image.isConnected || image.src)) {
+            image = sequentialImageQueue.shift();
+        }
+
+        if (!image) {
+            sequentialImageLoading = false;
+            return;
+        }
+
+        const onLoaded = () => {
+            image.classList.remove("sequential-image-loading");
+            loadNext();
+        };
+
+        image.addEventListener("load", onLoaded, { once: true });
+        image.addEventListener("error", onLoaded, { once: true });
+        image.src = image.dataset.sequentialSrc;
+    };
+
+    loadNext();
+}
+
+function cycleEroticsText(element) {
+    const nextIndex = (Number(element.dataset.index) + 1) % eroticsTextOptions.length;
+    element.classList.remove("flash-red");
+    void element.offsetWidth;
+    element.classList.add("flash-red");
+    element.dataset.index = String(nextIndex);
+    element.textContent = eroticsTextOptions[nextIndex];
+}
 
 function syncMobileViewport() {
     const viewport = window.visualViewport;
@@ -191,6 +247,7 @@ function showPrintSubcategory(category, link, updateUrl = true) {
     document.getElementById("content").innerHTML = category === "lohne"
         ? renderLohneContent()
         : "";
+    startSequentialImageLoading(document.getElementById("content"));
     if (updateUrl) {
         updatePageUrl(`sd/${category}`);
     }
@@ -251,21 +308,21 @@ function renderLohneContent() {
     return `
 <div class="print-item">
     <a href="${printImage("Scan_20260119 (2).jpg")}" target="_blank">
-        <img src="${printImage("Scan_20260119 (2).jpg")}" width="1251" height="1807">
+        <img data-sequential-src="${printImage("Scan_20260119 (2).jpg")}" width="1251" height="1807" class="sequential-image-loading">
     </a>
     ${renderImageDescription()}
 </div>
 
 <div class="print-item">
     <a href="${printImage("Scan_20260119.jpg")}" target="_blank">
-        <img src="${printImage("Scan_20260119.jpg")}" width="3327" height="2125">
+        <img data-sequential-src="${printImage("Scan_20260119.jpg")}" width="3327" height="2125" class="sequential-image-loading">
     </a>
     ${renderImageDescription()}
 </div>
 
 <div class="print-item">
     <a href="${printImage("Scan_20260119 (20).jpg")}" target="_blank">
-        <img src="${printImage("Scan_20260119 (20).jpg")}" width="3252" height="2112">
+        <img data-sequential-src="${printImage("Scan_20260119 (20).jpg")}" width="3252" height="2112" class="sequential-image-loading">
     </a>
     ${renderImageDescription()}
 </div>
@@ -288,7 +345,7 @@ function renderMirrorItems(startIndex, endIndex) {
         return `
 <div class="mirror-item">
     <div class="mirror-image-link">
-        <img src="${image}" width="600" loading="lazy" decoding="async">
+        <img data-sequential-src="${image}" width="600" decoding="async" class="sequential-image-loading">
         <div class="mirror-image-overlay" aria-hidden="true">
             ${mirrorImageSketch.map((line) => `<span class="mirror-image-overlay-line" hidden>${line.replace(/\./g, "o")}</span>`).join("")}
         </div>
@@ -318,6 +375,7 @@ function appendMirrorImageBatch(trigger) {
     const nextIndex = Number(trigger.dataset.nextIndex);
     const endIndex = Math.min(nextIndex + mirrorImageBatchSize, mirrorImages.length);
     trigger.insertAdjacentHTML("beforebegin", renderMirrorItems(nextIndex, endIndex));
+    startSequentialImageLoading(trigger.parentElement);
 
     if (endIndex >= mirrorImages.length) {
         trigger.remove();
@@ -391,7 +449,7 @@ function renderWContent() {
     };
 
     return wImages.map((filename, index) => {
-        const image = `<img src="${wImage(filename)}" width="600">`;
+        const image = `<img data-sequential-src="${wImage(filename)}" width="600" class="sequential-image-loading">`;
         const isFlowerOverlay = filename === "20250329_001636.jpg";
         const isONumberOverlay = filename === "20250518_195425.jpg";
         const isSecondImage = index === 1;
@@ -870,6 +928,7 @@ function showPage(page, link, updateUrl = true) {
         if (page === "sd") {
             content.innerHTML = "";
             showPrintSubcategory("lohne", document.getElementById("print-lohne"), false);
+            startSequentialImageLoading(content);
         }
 
         if (page === "c------") {
@@ -881,13 +940,15 @@ function showPage(page, link, updateUrl = true) {
 
         if (page === "w") {
             content.innerHTML = renderWContent();
+            startSequentialImageLoading(content);
         }
 
 
         /* e */
 
         if (page === "e") {
-            content.innerHTML = '<div class="erotics-text">not yet</div>';
+            content.innerHTML = `<button type="button" class="erotics-text" data-index="0"
+                onclick="cycleEroticsText(this)">${eroticsTextOptions[0]}</button>`;
         }
 
 
@@ -926,6 +987,7 @@ function showPage(page, link, updateUrl = true) {
 
         if (page === "side-mirror") {
             content.innerHTML = renderMirrorContent();
+            startSequentialImageLoading(content);
             startMirrorImageLoading();
         }
 
@@ -1194,8 +1256,9 @@ function showPage(page, link, updateUrl = true) {
 
         if (page === "o8") {
             overlay.innerHTML = `
-                <img src="pic/rnd/20260207_144703.png" width="974" height="532" class="center-picture">
+                <img data-sequential-src="pic/rnd/20260207_144703.png" width="974" height="532" class="center-picture sequential-image-loading">
             `;
+            startSequentialImageLoading(overlay);
         }
 
         /* o18 text graphs */

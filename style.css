@@ -12,6 +12,10 @@ a {
     -webkit-user-drag: none;
 }
 
+.sequential-image-loading {
+    visibility: hidden;
+}
+
 html {
     -webkit-text-size-adjust: none;
     text-size-adjust: none;
@@ -94,6 +98,19 @@ nav .nav-static {
     left: 50%;
     transform: translate(-50%, -50%);
     color: #551A8B;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    text-align: left;
+    white-space: pre-line;
+    width: 21em;
+    max-width: calc(100vw - 32px);
+    cursor: pointer;
+}
+
+.erotics-text.flash-red {
+    animation: o18-graph-flash 600ms ease-in-out;
 }
 
 @media (max-width: 980px) {
