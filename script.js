@@ -626,14 +626,15 @@ function renderWContent() {
         bottomRows = 1,
         withThreeOAccent = false,
         accentPosition,
-        withNineOGrid = false
+        withNineOGrid = false,
+        withMovingOAccent = false
     ) => {
         const horizontal = `${symbol} `.repeat(60);
         const vertical = `${symbol}\n`.repeat(100);
         const bottom = Array.from({ length: bottomRows }, () => horizontal).join("\n");
         const borderClass = bottomRows > 1 ? " bottom-heavy" : "";
         const threeOs = "<span>o</span><span>o</span><span>o</span>";
-        const accentClass = `symbol-accent${accentPosition ? ` symbol-accent--${accentPosition}` : ""}`;
+        const accentClass = `symbol-accent${accentPosition ? ` symbol-accent--${accentPosition}` : ""}${withMovingOAccent ? " symbol-accent--moving" : ""}`;
         const threeOAccent = withThreeOAccent
             ? `<span class="${accentClass}">${threeOs}</span>`
             : "";
@@ -651,6 +652,7 @@ function renderWContent() {
         const isSecondImage = index === 1;
         const hasThreeOAccent = wImagesWithThreeOAccent.has(index);
         const hasNineOGrid = index === 22;
+        const hasMovingOAccent = index === wImages.length - 1;
         const isNumberOutline = index >= 3;
         const hasOverlay = isFlowerOverlay || isONumberOverlay
             || isSecondImage || isNumberOutline;
@@ -687,7 +689,8 @@ function renderWContent() {
         1,
         hasThreeOAccent,
         wImageThreeOAccentPositions.get(index),
-        hasNineOGrid
+        hasNineOGrid,
+        hasMovingOAccent
     )}
  </div>`
                         : "";
@@ -716,6 +719,14 @@ function toggleWImageFromText(overlay) {
     description.classList.remove("flash-red");
     void description.offsetWidth;
     description.classList.add("flash-red");
+
+    const movingAccent = overlay.querySelector(".symbol-accent--moving");
+    if (movingAccent) {
+        const nextLine = Number(movingAccent.dataset.line || 0) + 1;
+        movingAccent.dataset.line = String(nextLine);
+        movingAccent.style.top = `${(6 + nextLine) * 1.15}em`;
+        movingAccent.style.transform = `translateX(-${Math.floor(nextLine / 5)}em)`;
+    }
 
     if (overlay.dataset.symbol !== undefined) {
         toggleWImageSymbol(overlay);
@@ -760,7 +771,8 @@ function toggleWImageSymbol(overlay) {
             : horizontal;
         overlay.querySelectorAll(".symbol-accent, .symbol-grid-accent")
             .forEach((accent) => {
-                accent.hidden = nextSymbol !== overlay.dataset.baseSymbol;
+                accent.hidden = !accent.classList.contains("symbol-accent--moving")
+                    && nextSymbol !== overlay.dataset.baseSymbol;
             });
         overlay.dataset.symbol = nextSymbol;
         overlay.classList.remove("flash-red");
