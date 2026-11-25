@@ -17,6 +17,46 @@ const mirrorImages = [
     "20251213_125321.jpg",
     "20251215_153601.jpg"
 ];
+const mirrorImageSketch = [
+    "       ....         .....       ...",
+    "     .......      .........   ........",
+    "     .......      ........     ........",
+    "     .......      .........    ........   ....",
+    "      ......       .......      .......  ......",
+    "         ...          ...         .... ........",
+    "           .           ..           .. ........",
+    "            .          .             .  .......",
+    "            ..    ......            .    ....",
+    "            ..   ..   .        .    .     .",
+    "            .        .          ....      .",
+    "   ....  ......       .  ...       .      .",
+    "   .     ..    .      ...          .     ..",
+    "        ..           ..            .     .",
+    "       ..       ...  .             .     .",
+    "       ..     ...   ..     .....  .      .. ...",
+    "        .           ..    .     ...       .",
+    "  .. .....          ..         .. .       .",
+    " ..      ...        ..         ..          .",
+    "         .          ..          .     ......",
+    "          ..        .   ...     ..   ..   ..",
+    "         ...        ...          .         .",
+    "         .         ..            .         .",
+    "         .       ..              .       .....",
+    "   .    ..       .         .    .      ..",
+    "   ......        .         .....       ..",
+    "   ..  ..    .......           ..       ..",
+    "        .    .     ..           ..       .",
+    "        ..          .            ..        .",
+    " ...     ..          ..           ..    .....     ..",
+    "    .. . ..            .    ...... ..        .. ..",
+    "       .....          ..          ...        ...",
+    "         ....     .........        .. ...    ..",
+    "            ..  . .   .             .        ..",
+    "            ...      ..             .        .",
+    "           .. .      ..             .        ..",
+    "            ..       ...            .        . ......",
+    "          .... . .... ...     .    . ..... ... .. ..."
+];
 const mirrorImageBatchSize = 5;
 const mirrorImagePrefetchDistance = 800;
 
@@ -173,9 +213,27 @@ function duplicateImageDescription(description) {
     descriptions.forEach((text) => text.classList.add("flash-red"));
 }
 
-function renderImageDescription() {
+function revealMirrorImageLine(description) {
+    const item = description.closest(".mirror-item");
+    const lines = item.querySelectorAll(".mirror-image-overlay-line");
+    const revealedLines = Number(description.dataset.revealedLines || 0);
+    const nextLineIndex = lines.length - revealedLines - 1;
+
+    description.classList.remove("flash-red");
+    void description.offsetWidth;
+    description.classList.add("flash-red");
+
+    if (nextLineIndex < 0) {
+        return;
+    }
+
+    lines[nextLineIndex].hidden = false;
+    description.dataset.revealedLines = String(revealedLines + 1);
+}
+
+function renderImageDescription(onClick = "duplicateImageDescription(this)") {
     return `
-<button type="button" class="image-description" onclick="duplicateImageDescription(this)">
+<button type="button" class="image-description" onclick="${onClick}">
     :::::<br>
     :::::<br>
     :::::<br>
@@ -229,10 +287,13 @@ function renderMirrorItems(startIndex, endIndex) {
         const image = mirrorImage(filename);
         return `
 <div class="mirror-item">
-    <a href="${image}" target="_blank">
+    <div class="mirror-image-link">
         <img src="${image}" width="600" loading="lazy" decoding="async">
-    </a>
-    ${renderImageDescription()}
+        <div class="mirror-image-overlay" aria-hidden="true">
+            ${mirrorImageSketch.map((line) => `<span class="mirror-image-overlay-line" hidden>${line.replace(/\./g, "o")}</span>`).join("")}
+        </div>
+    </div>
+    ${renderImageDescription("revealMirrorImageLine(this)")}
 </div>`;
     }).join("");
 }
@@ -301,21 +362,123 @@ function startMirrorImageLoading() {
 
 function renderWContent() {
     const wImages = [
+        "20250329_001636.jpg",
+        "P1322318 (1).JPG",
         "20250518_195425.jpg",
         "20240509_234712.jpg",
         "20240605_013611.jpg",
-        "20240605_014712.jpg",
-        "20250329_001636.jpg",
-        "P1322318 (1).JPG"
+        "20240605_014712.jpg"
     ];
     const wImage = (filename) =>
         `${appBasePath}pic/w/${encodeURIComponent(filename)}`;
+    const wImageOneBorder = (thickness) => {
+        const horizontal = Array.from(
+            { length: thickness },
+            () => "1 ".repeat(60)
+        ).join("\n");
+        const vertical = `${Array.from({ length: thickness }, () => "1").join(" ")}\n`.repeat(100);
+        const borderClass = thickness > 1 ? ` thick thick-${thickness}` : "";
 
-    return wImages.map((filename) => `
+        return `<span class="w-image-one-border${borderClass}" aria-hidden="true"><span class="top">${horizontal}</span><span class="right">${vertical}</span><span class="bottom">${horizontal}</span><span class="left">${vertical}</span></span>`;
+    };
+    const wImageSymbolBorder = (symbol, bottomRows = 1) => {
+        const horizontal = `${symbol} `.repeat(60);
+        const vertical = `${symbol}\n`.repeat(100);
+        const bottom = Array.from({ length: bottomRows }, () => horizontal).join("\n");
+        const borderClass = bottomRows > 1 ? " bottom-heavy" : "";
+
+        return `<span class="w-image-one-border w-image-symbol-border${borderClass}" aria-hidden="true"><span class="top">${horizontal}</span><span class="right">${vertical}</span><span class="bottom">${bottom}</span><span class="left">${vertical}</span></span>`;
+    };
+
+    return wImages.map((filename, index) => {
+        const image = `<img src="${wImage(filename)}" width="600">`;
+        const isFlowerOverlay = filename === "20250329_001636.jpg";
+        const isONumberOverlay = filename === "20250518_195425.jpg";
+        const isSecondImage = index === 1;
+        const isNumberOutline = index >= 3;
+        const hasOverlay = isFlowerOverlay || isONumberOverlay
+            || isSecondImage || isNumberOutline;
+        const overlayMarkup = isFlowerOverlay
+            ? `<button type="button" class="w-image-ones" data-mode="fill"
+        aria-label="Toggle image overlay between flowers and a 1 border"
+        onclick="toggleWImageOverlay(this)">
+    <span class="w-image-overlay-fill" aria-hidden="true">${"❀ ".repeat(2500)}</span>
+    ${wImageOneBorder(1)}
+</button>`
+            : isONumberOverlay
+                ? `<button type="button" class="w-image-ones" data-mode="fill"
+        aria-label="Toggle image overlay between o's and a 2-row 1 border"
+        onclick="toggleWImageOverlay(this)">
+    <span class="w-image-overlay-fill" aria-hidden="true">${"o ".repeat(2500)}</span>
+    ${wImageOneBorder(2)}
+</button>`
+                : isSecondImage
+                    ? `<button type="button" class="w-image-ones show-one-border"
+        data-symbol="1" data-base-symbol="1" data-alt-symbol="o"
+        aria-label="Toggle outline between 1's and o's"
+        onclick="toggleWImageSymbol(this)">
+    ${wImageSymbolBorder("1", 5)}
+</button>`
+                    : isNumberOutline
+                        ? `<button type="button" class="w-image-ones show-one-border"
+        data-symbol="1" data-base-symbol="1" data-alt-symbol="o"
+        aria-label="Toggle outline between 1's and o's"
+        onclick="toggleWImageSymbol(this)">
+    ${wImageSymbolBorder("1")}
+</button>`
+                        : "";
+        const imageMarkup = hasOverlay
+            ? `<div class="w-image-covered${isFlowerOverlay ? " w-image-covered-flowers" : ""}">
+    ${image}
+    ${overlayMarkup}
+</div>`
+            : image;
+
+        return `
 <div class="w-item">
-    <img src="${wImage(filename)}" width="600">
+    ${imageMarkup}
     ${renderImageDescription()}
-</div>`).join("");
+    </div>`;
+    }).join("");
+}
+
+function toggleWImageOverlay(overlay) {
+    if (overlay.classList.contains("flash-red")) {
+        return;
+    }
+
+    const nextMode = overlay.dataset.mode === "border" ? "fill" : "border";
+    overlay.classList.add("flash-red");
+    overlay.addEventListener("animationend", () => {
+        overlay.dataset.mode = nextMode;
+        overlay.classList.toggle("show-one-border", nextMode === "border");
+        overlay.classList.remove("flash-red");
+    }, { once: true });
+}
+
+function toggleWImageSymbol(overlay) {
+    if (overlay.classList.contains("flash-red")) {
+        return;
+    }
+
+    const nextSymbol = overlay.dataset.symbol === overlay.dataset.baseSymbol
+        ? overlay.dataset.altSymbol
+        : overlay.dataset.baseSymbol;
+    overlay.classList.add("flash-red");
+    overlay.addEventListener("animationend", () => {
+        const border = overlay.querySelector(".w-image-symbol-border");
+        const horizontal = `${nextSymbol} `.repeat(60);
+        const vertical = `${nextSymbol}\n`.repeat(100);
+
+        border.querySelector(".top").textContent = horizontal;
+        border.querySelector(".right").textContent = vertical;
+        border.querySelector(".left").textContent = vertical;
+        border.querySelector(".bottom").textContent = border.classList.contains("bottom-heavy")
+            ? Array.from({ length: 5 }, () => horizontal).join("\n")
+            : horizontal;
+        overlay.dataset.symbol = nextSymbol;
+        overlay.classList.remove("flash-red");
+    }, { once: true });
 }
 
 
@@ -709,6 +872,10 @@ function showPage(page, link, updateUrl = true) {
             showPrintSubcategory("lohne", document.getElementById("print-lohne"), false);
         }
 
+        if (page === "c------") {
+            content.innerHTML = "";
+        }
+
 
         /* w */
 
@@ -720,7 +887,7 @@ function showPage(page, link, updateUrl = true) {
         /* e */
 
         if (page === "e") {
-            content.innerHTML = "";
+            content.innerHTML = '<div class="erotics-text">not yet</div>';
         }
 
 
@@ -787,6 +954,11 @@ function showPage(page, link, updateUrl = true) {
 
         // close the currently open sub-menu if clicked again
         if (currentOverlay === page) {
+            if (page === "o18") {
+                toggleO18Graph(overlay.querySelector(".o18-graph"));
+                return;
+            }
+
             overlay?.remove();
             currentOverlay = null;
 
