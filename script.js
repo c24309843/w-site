@@ -908,11 +908,23 @@ function renderWContent() {
 </div>`
             : image;
 
+        const outlinePost = index === 11 ? `
+<div class="w-item" data-image-filename="w-o-outline">
+    <div class="w-image-covered w-image-covered-empty">
+        <div class="w-image-ones show-one-border" data-mode="border" aria-hidden="true"
+            onclick="toggleWImageFromText(this)">
+            <span class="w-image-overlay-fill" aria-hidden="true">${"o ".repeat(2500)}</span>
+            ${wImageSymbolBorder("o")}
+        </div>
+    </div>
+    ${renderImageDescription("toggleWImageFromDescription(this)")}
+</div>` : "";
+
         return `
 <div class="w-item" data-image-number="${index + 1}" data-image-filename="${filename}">
     ${imageMarkup}
     ${renderImageDescription("toggleWImageFromDescription(this)")}
-    </div>`;
+    </div>${outlinePost}`;
     }).join("");
 }
 
@@ -1026,90 +1038,24 @@ function toggleWImageSymbol(overlay) {
 }
 
 
-function toggleO18Graph(graph) {
-    graph.classList.remove("flash-red");
-    void graph.offsetWidth;
-    graph.classList.add("flash-red");
-}
-
 function loadO18PlantData() {
     if (!o18PlantDataPromise) {
         o18PlantDataPromise = new Promise((resolve, reject) => {
+            if (typeof o18PlantNodes === "undefined" || !o18PlantNodes.length) {
+                reject(new Error("Plant growth data is missing."));
+                return;
+            }
             const image = new Image();
             image.onload = () => {
-                try {
-                    const canvas = document.createElement("canvas");
-                    canvas.width = image.naturalWidth;
-                    canvas.height = image.naturalHeight;
-                    const context = canvas.getContext("2d");
-                    context.drawImage(image, 0, 0);
-                    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
-                    const cells = new Map();
-
-                    for (let y = 0; y < canvas.height; y++) {
-                        for (let x = 0; x < canvas.width; x++) {
-                            const offset = (y * canvas.width + x) * 4;
-                            if (!pixels[offset + 3]) {
-                                continue;
-                            }
-                            const column = Math.round((x - 416) / 5.62);
-                            const row = Math.round((y - 1) / 13.12);
-                            const key = `${column},${row}`;
-                            if (!cells.has(key)) {
-                                cells.set(key, { x: 416 + column * 5.62, y: 1 + row * 13.12, pixels: [] });
-                            }
-                            cells.get(key).pixels.push(offset);
-                        }
-                    }
-
-                    const nodes = Array.from(cells.values());
-                    if (!nodes.length) {
-                        throw new Error("The plant image is empty.");
-                    }
-
-                    // Grow through the nearest characters, bridging gaps between branches when necessary.
-                    const distances = new Float64Array(nodes.length).fill(Infinity);
-                    const parents = new Int32Array(nodes.length).fill(-1);
-                    const visited = new Uint8Array(nodes.length);
-                    let root = 0;
-                    for (let i = 1; i < nodes.length; i++) {
-                        if (Math.hypot(nodes[i].x - 590.5, nodes[i].y - 688)
-                            < Math.hypot(nodes[root].x - 590.5, nodes[root].y - 688)) {
-                            root = i;
-                        }
-                    }
-                    distances[root] = 0;
-
-                    for (let i = 0; i < nodes.length; i++) {
-                        let nearest = -1;
-                        for (let j = 0; j < nodes.length; j++) {
-                            if (!visited[j] && (nearest === -1 || distances[j] < distances[nearest])) {
-                                nearest = j;
-                            }
-                        }
-                        visited[nearest] = 1;
-                        nodes[nearest].depth = parents[nearest] === -1
-                            ? 0
-                            : nodes[parents[nearest]].depth + Math.sqrt(distances[nearest]);
-
-                        for (let j = 0; j < nodes.length; j++) {
-                            if (!visited[j]) {
-                                const dx = nodes[nearest].x - nodes[j].x;
-                                const dy = nodes[nearest].y - nodes[j].y;
-                                const distance = dx * dx + dy * dy;
-                                if (distance < distances[j]) {
-                                    distances[j] = distance;
-                                    parents[j] = nearest;
-                                }
-                            }
-                        }
-                    }
-
-                    nodes.sort((a, b) => a.depth - b.depth);
-                    resolve({ nodes, pixels, maxDepth: nodes[nodes.length - 1].depth });
-                } catch (error) {
-                    reject(error);
+                if (image.naturalWidth !== 815 || image.naturalHeight !== 688) {
+                    reject(new Error("Plant image dimensions do not match its growth data."));
+                    return;
                 }
+                resolve({
+                    image,
+                    nodes: o18PlantNodes,
+                    maxDepth: o18PlantNodes[o18PlantNodes.length - 1][4]
+                });
             };
             image.onerror = () => reject(new Error("Could not load the plant image."));
             image.src = `${appBasePath}pic/rnd/o18-plant.png`;
@@ -1139,27 +1085,29 @@ function animateO18Plant(animation, target, updateUrl = true) {
             : Math.max(target, initialProgress - change);
         const threshold = animation.progress * animation.data.maxDepth;
         const nodes = animation.data.nodes;
-        const output = animation.imageData.data;
-        const original = animation.data.pixels;
+        const context = animation.context;
+        let changed = false;
 
         while (animation.progress > 0 && animation.visible < nodes.length
-            && nodes[animation.visible].depth <= threshold) {
-            nodes[animation.visible].pixels.forEach((offset) => {
-                output[offset] = 85;
-                output[offset + 1] = 26;
-                output[offset + 2] = 139;
-                output[offset + 3] = original[offset + 3];
-            });
+            && nodes[animation.visible][4] <= threshold) {
+            const [x, y, width, height] = nodes[animation.visible];
+            context.drawImage(animation.data.image, x, y, width, height, x, y, width, height);
             animation.visible++;
+            changed = true;
         }
         while (animation.visible > 0 && (animation.progress === 0
-            || nodes[animation.visible - 1].depth > threshold)) {
+            || nodes[animation.visible - 1][4] > threshold)) {
             animation.visible--;
-            nodes[animation.visible].pixels.forEach((offset) => {
-                output[offset + 3] = 0;
-            });
+            const [x, y, width, height] = nodes[animation.visible];
+            context.clearRect(x, y, width, height);
+            changed = true;
         }
-        animation.context.putImageData(animation.imageData, 0, 0);
+        if (changed) {
+            context.globalCompositeOperation = "source-in";
+            context.fillStyle = "#551A8B";
+            context.fillRect(0, 0, 815, 688);
+            context.globalCompositeOperation = "source-over";
+        }
 
         if (animation.progress !== target) {
             animation.frame = requestAnimationFrame(step);
@@ -2051,7 +1999,11 @@ function showPage(page, link, updateUrl = true) {
             const graph = overlay.querySelector(".o18-graph");
             positionO18Graph();
             graph.addEventListener("click", function() {
-                toggleO18Graph(this);
+                if (o18PlantAnimation && o18PlantAnimation.data) {
+                    animateO18Plant(o18PlantAnimation, 0);
+                } else {
+                    document.getElementById("o18").click();
+                }
             });
             const animation = {
                 graph,
@@ -2067,7 +2019,6 @@ function showPage(page, link, updateUrl = true) {
                     return;
                 }
                 animation.data = data;
-                animation.imageData = animation.context.createImageData(815, 688);
                 animateO18Plant(animation, 1);
             }).catch((error) => {
                 console.error("Failed to display the plant drawing:", error);

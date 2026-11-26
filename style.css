@@ -248,6 +248,10 @@ nav .nav-static {
     margin: 90px 0 40px 50px;
 }
 
+.w-image-covered-empty {
+    height: 674px;
+}
+
 .w-image-covered-flowers .w-image-ones {
     inset: -8px -24px -8px -8px;
 }
