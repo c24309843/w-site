@@ -10,7 +10,6 @@ let activePrintSubLink = null;
 let activePrintOverlayLink = null;
 let activeWTumblrOverlayLink = null;
 let twitchPlayerLoader = null;
-let mirrorImageObserver = null;
 let sequentialImageLoading = false;
 let sequentialImageQueue = [];
 const appBasePath = new URL(".", document.currentScript.src).pathname;
@@ -107,9 +106,6 @@ const mirrorImageSketch = [
     "            ..       ...            .        . ......",
     "          .... . .... ...     .    . ..... ... .. ..."
 ];
-const mirrorImageBatchSize = 5;
-const mirrorImagePrefetchDistance = 800;
-
 const o5TextOptions = ["gnome ...", "yyyyyyyyyyyyyy", "chome."];
 const o18GraphOptions = [
     "<<<ooo>>>\n   o:o    \n    oo    \n<<<o:o>>>\n    o:o   \n    o:o   \n    o o   \n    o o   \n    o o   ",
@@ -204,6 +200,7 @@ function restorePrintOverlayStates(content) {
                         duplicate.classList.remove("flash-red");
                         firstDescription.insertAdjacentElement("afterend", duplicate);
                     }
+                    updatePrintDescriptionEndings(item);
                 }
             }
         });
@@ -235,6 +232,11 @@ function loadOverlayStatesFromStorage() {
     } catch (e) {
         console.warn("Failed to load overlay states from localStorage:", e);
     }
+}
+
+function saveOverlayState(filename, state) {
+    overlayStates.set(filename, state);
+    saveOverlayStatesToStorage();
 }
 
 function restoreScrollAfterLoading(content, page, savedScroll) {
@@ -577,18 +579,23 @@ function closeWTumblrOverlay() {
     }
 }
 
-function duplicatePrintDescription(description) {
-    const item = description.parentElement;
-    const duplicate = description.cloneNode(true);
-    duplicate.classList.remove("flash-red");
-    description.insertAdjacentElement("afterend", duplicate);
-
+function updatePrintDescriptionEndings(item) {
     const descriptions = item.querySelectorAll(".image-description");
     const milestoneEndings = ["c:::", "o:::", "c:::", "k:::"];
     descriptions.forEach((text, index) => {
         text.querySelector(".image-description-last-line").textContent =
             milestoneEndings[index - 24] || ":::::";
     });
+}
+
+function duplicatePrintDescription(description) {
+    const item = description.parentElement;
+    const duplicate = description.cloneNode(true);
+    duplicate.classList.remove("flash-red");
+    description.insertAdjacentElement("afterend", duplicate);
+
+    updatePrintDescriptionEndings(item);
+    const descriptions = item.querySelectorAll(".image-description");
     descriptions.forEach((text) => text.classList.remove("flash-red"));
     void description.offsetWidth;
     descriptions.forEach((text) => text.classList.add("flash-red"));
@@ -596,7 +603,7 @@ function duplicatePrintDescription(description) {
     // Save overlay state for prints
     const filename = item.dataset.imageFilename;
     if (filename) {
-        overlayStates.set(filename, {
+        saveOverlayState(filename, {
             duplicateCount: descriptions.length - 1,
             type: "print"
         });
@@ -644,7 +651,7 @@ function revealMirrorImageLine(description) {
     // Save overlay state for mirror
     const filename = item.dataset.imageFilename;
     if (filename) {
-        overlayStates.set(filename, {
+        saveOverlayState(filename, {
             revealedLines: revealedLines + 1,
             type: "mirror"
         });
@@ -699,11 +706,11 @@ function renderLohneContent() {
 `;
 }
 
-function renderMirrorItems(startIndex, endIndex) {
+function renderMirrorContent() {
     const mirrorImage = (filename) =>
         `${appBasePath}pic/mirror/${encodeURIComponent(filename)}`;
 
-    return mirrorImages.slice(startIndex, endIndex).map((filename) => {
+    return mirrorImages.map((filename) => {
         const image = mirrorImage(filename);
         return `
 <div class="mirror-item" data-image-filename="${filename}">
@@ -716,69 +723,6 @@ function renderMirrorItems(startIndex, endIndex) {
     ${renderImageDescription("revealMirrorImageLine(this)")}
 </div>`;
     }).join("");
-}
-
-function renderMirrorContent() {
-    const initialCount = Math.min(mirrorImageBatchSize, mirrorImages.length);
-    const loadTrigger = initialCount < mirrorImages.length
-        ? `<div class="mirror-load-trigger" data-next-index="${initialCount}" aria-hidden="true"></div>`
-        : "";
-
-    return `${renderMirrorItems(0, initialCount)}${loadTrigger}`;
-}
-
-function stopMirrorImageLoading() {
-    if (mirrorImageObserver) {
-        mirrorImageObserver.disconnect();
-        mirrorImageObserver = null;
-    }
-}
-
-function appendMirrorImageBatch(trigger) {
-    const nextIndex = Number(trigger.dataset.nextIndex);
-    const endIndex = Math.min(nextIndex + mirrorImageBatchSize, mirrorImages.length);
-    trigger.insertAdjacentHTML("beforebegin", renderMirrorItems(nextIndex, endIndex));
-    startSequentialImageLoading(trigger.parentElement);
-
-    if (endIndex >= mirrorImages.length) {
-        trigger.remove();
-        stopMirrorImageLoading();
-        return false;
-    }
-
-    trigger.dataset.nextIndex = String(endIndex);
-    return true;
-}
-
-function startMirrorImageLoading() {
-    const trigger = document.querySelector("#content .mirror-load-trigger");
-    if (!trigger) {
-        return;
-    }
-
-    if (!("IntersectionObserver" in window)) {
-        while (appendMirrorImageBatch(trigger)) {
-            // Load all images when progressive loading is unsupported.
-        }
-        return;
-    }
-
-    mirrorImageObserver = new IntersectionObserver((entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) {
-            return;
-        }
-
-        while (
-            trigger.isConnected &&
-            trigger.getBoundingClientRect().top <= window.innerHeight + mirrorImagePrefetchDistance
-        ) {
-            if (!appendMirrorImageBatch(trigger)) {
-                return;
-            }
-        }
-    }, { rootMargin: `${mirrorImagePrefetchDistance}px 0px` });
-
-    mirrorImageObserver.observe(trigger);
 }
 
 function renderWContent() {
@@ -845,8 +789,6 @@ function renderWContent() {
         ["20250601_210641.jpg", { threeOAccent: true, threeMovingOs: true }],
         ["20250622_211727.jpg", { threeOAccent: true, accentPosition: "right", singleMovingO: true }],
         ["20250616_212118.jpg", { threeOAccent: true, threeMovingOs: true }],
-        // Nine O grid
-        ["20250506_232944.jpg", { nineOGrid: true }],
         // Three moving o's on last image
         ["New folder/20260111_192024.jpg", { threeMovingOs: true }]
     ]);
@@ -865,7 +807,6 @@ function renderWContent() {
         bottomRows = 1,
         withThreeOAccent = false,
         accentPosition,
-        withNineOGrid = false,
         withMovingOAccent = false,
         withSingleMovingO = false,
         withThreeMovingOs = false
@@ -879,11 +820,7 @@ function renderWContent() {
         const threeOAccent = (withThreeOAccent || withThreeMovingOs)
             ? `<span class="${accentClass}">${withSingleMovingO ? "<span>o</span>" : threeOs}</span>`
             : "";
-        const nineOGrid = withNineOGrid
-            ? `<span class="symbol-grid-accent">${"<span>o</span>".repeat(9)}</span>`
-            : "";
-
-        return `<span class="w-image-one-border w-image-symbol-border${borderClass}" aria-hidden="true">${threeOAccent}${nineOGrid}<span class="top">${horizontal}</span><span class="right">${vertical}</span><span class="bottom">${bottom}</span><span class="left">${vertical}</span></span>`;
+        return `<span class="w-image-one-border w-image-symbol-border${borderClass}" aria-hidden="true">${threeOAccent}<span class="top">${horizontal}</span><span class="right">${vertical}</span><span class="bottom">${bottom}</span><span class="left">${vertical}</span></span>`;
     };
 
     return wImages.map((filename, index) => {
@@ -893,7 +830,6 @@ function renderWContent() {
         const isONumberOverlay = features.oNumberOverlay || false;
         const isSecondImage = filename === "P1322318 (1).JPG";
         const hasThreeOAccent = features.threeOAccent || false;
-        const hasNineOGrid = features.nineOGrid || false;
         const hasSingleMovingO = features.singleMovingO || false;
         const hasThreeMovingOs = features.threeMovingOs || false;
         const hasMovingOAccent = hasSingleMovingO || hasThreeMovingOs;
@@ -923,7 +859,6 @@ function renderWContent() {
         5,
         hasThreeOAccent,
         accentPosition,
-        hasNineOGrid,
         false,
         withSingleMovingO,
         withThreeMovingOs
@@ -938,7 +873,6 @@ function renderWContent() {
         1,
         hasThreeOAccent,
         accentPosition,
-        hasNineOGrid,
         hasMovingOAccent,
         withSingleMovingO,
         withThreeMovingOs
@@ -965,6 +899,12 @@ function toggleWImageFromDescription(description) {
     toggleWImageFromText(overlay);
 }
 
+function setWMovingAccentLine(movingAccent, line) {
+    movingAccent.dataset.line = String(line);
+    movingAccent.style.top = `${(6 + line) * 1.15}em`;
+    movingAccent.style.transform = `translateX(-${Math.floor(line / 5)}em)`;
+}
+
 function toggleWImageFromText(overlay) {
     const description = overlay.closest(".w-item").querySelector(".image-description");
     description.classList.remove("flash-red");
@@ -974,9 +914,12 @@ function toggleWImageFromText(overlay) {
     const movingAccent = overlay.querySelector(".symbol-accent--moving, .symbol-accent--single-moving, .symbol-accent--triple-moving");
     if (movingAccent) {
         const nextLine = Number(movingAccent.dataset.line || 0) + 1;
-        movingAccent.dataset.line = String(nextLine);
-        movingAccent.style.top = `${(6 + nextLine) * 1.15}em`;
-        movingAccent.style.transform = `translateX(-${Math.floor(nextLine / 5)}em)`;
+        setWMovingAccentLine(movingAccent, nextLine);
+        const filename = overlay.closest(".w-item").dataset.imageFilename;
+        saveOverlayState(filename, {
+            ...overlayStates.get(filename),
+            movingLine: nextLine
+        });
     }
 
     if (overlay.dataset.symbol !== undefined) {
@@ -993,6 +936,11 @@ function toggleWImageOverlay(overlay) {
 
     const filename = overlay.closest(".w-item").dataset.imageFilename;
     const nextMode = overlay.dataset.mode === "border" ? "fill" : "border";
+    saveOverlayState(filename, {
+        ...overlayStates.get(filename),
+        symbol: overlay.dataset.symbol,
+        mode: nextMode
+    });
     overlay.classList.add("flash-red");
     overlay.addEventListener("animationend", () => {
         overlay.dataset.mode = nextMode;
@@ -1000,7 +948,8 @@ function toggleWImageOverlay(overlay) {
         overlay.classList.remove("flash-red");
         
         // Save overlay state
-        overlayStates.set(filename, {
+        saveOverlayState(filename, {
+            ...overlayStates.get(filename),
             symbol: overlay.dataset.symbol,
             mode: nextMode
         });
@@ -1016,6 +965,11 @@ function toggleWImageSymbol(overlay) {
     const nextSymbol = overlay.dataset.symbol === overlay.dataset.baseSymbol
         ? overlay.dataset.altSymbol
         : overlay.dataset.baseSymbol;
+    saveOverlayState(filename, {
+        ...overlayStates.get(filename),
+        symbol: nextSymbol,
+        mode: overlay.dataset.mode
+    });
     overlay.classList.add("flash-red");
     overlay.addEventListener("animationend", () => {
         const border = overlay.querySelector(".w-image-symbol-border");
@@ -1028,7 +982,7 @@ function toggleWImageSymbol(overlay) {
         border.querySelector(".bottom").textContent = border.classList.contains("bottom-heavy")
             ? Array.from({ length: 5 }, () => horizontal).join("\n")
             : horizontal;
-        overlay.querySelectorAll(".symbol-accent, .symbol-grid-accent")
+        overlay.querySelectorAll(".symbol-accent")
             .forEach((accent) => {
                 // Keep moving accents (single or triple) always visible
                 const isMovingAccent = accent.classList.contains("symbol-accent--moving") 
@@ -1041,7 +995,8 @@ function toggleWImageSymbol(overlay) {
         overlay.classList.remove("flash-red");
         
         // Save overlay state
-        overlayStates.set(filename, {
+        saveOverlayState(filename, {
+            ...overlayStates.get(filename),
             symbol: nextSymbol,
             mode: overlay.dataset.mode
         });
@@ -1402,21 +1357,20 @@ if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", fitSubNavigation);
 }
 
+loadOverlayStatesFromStorage();
+
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
         fitSubNavigation();
-        loadOverlayStatesFromStorage();
     });
 } else {
     fitSubNavigation();
-    loadOverlayStatesFromStorage();
 }
 
 
 /* page navigation */
 
 function showPage(page, link, updateUrl = true) {
-    stopMirrorImageLoading();
     closeWTumblrOverlay();
     const content = document.getElementById("content");
     let overlay = document.getElementById("overlay");
@@ -1514,6 +1468,11 @@ function showPage(page, link, updateUrl = true) {
                     const savedState = overlayStates.get(filename);
                     
                     if (overlay && savedState) {
+                        const movingAccent = overlay.querySelector(".symbol-accent--moving, .symbol-accent--single-moving, .symbol-accent--triple-moving");
+                        if (movingAccent && savedState.movingLine !== undefined) {
+                            setWMovingAccentLine(movingAccent, savedState.movingLine);
+                        }
+
                         // Restore symbol state
                         if (savedState.symbol !== undefined && overlay.dataset.symbol !== savedState.symbol) {
                             overlay.dataset.symbol = savedState.symbol;
@@ -1528,7 +1487,7 @@ function showPage(page, link, updateUrl = true) {
                                 border.querySelector(".bottom").textContent = border.classList.contains("bottom-heavy")
                                     ? Array.from({ length: 5 }, () => horizontal).join("\n")
                                     : horizontal;
-                                overlay.querySelectorAll(".symbol-accent, .symbol-grid-accent")
+                                overlay.querySelectorAll(".symbol-accent")
                                     .forEach((accent) => {
                                         accent.hidden = !accent.classList.contains("symbol-accent--moving")
                                             && symbol !== overlay.dataset.baseSymbol;
@@ -1591,8 +1550,7 @@ function showPage(page, link, updateUrl = true) {
         if (page === "side-mirror") {
             content.innerHTML = renderMirrorContent();
             startSequentialImageLoading(content);
-            startMirrorImageLoading();
-            
+
             // Restore mirror overlay states
             restoreMirrorOverlayStates(content);
         }

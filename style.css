@@ -352,21 +352,7 @@ nav .nav-static {
     justify-content: space-between;
 }
 
-.w-image-one-border .symbol-grid-accent {
-    top: 50%;
-    left: 50%;
-    width: 3em;
-    height: 3em;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-    place-items: center;
-    line-height: 1em;
-    transform: translate(-50%, -50%);
-}
-
-.w-image-one-border .symbol-accent[hidden],
-.w-image-one-border .symbol-grid-accent[hidden] {
+.w-image-one-border .symbol-accent[hidden] {
     display: none;
 }
 
@@ -479,10 +465,6 @@ nav .nav-static {
 
 .mirror-image-overlay-line[hidden] {
     display: none;
-}
-
-.mirror-load-trigger {
-    height: 1px;
 }
 
 /* subcategories */
