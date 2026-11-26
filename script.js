@@ -7,8 +7,11 @@ let activeMainLink = null;
 let activeSubLink = null;
 let activeBottomSubLink = null;
 let activePrintSubLink = null;
+let activeMirrorSubLink = null;
 let activePrintOverlayLink = null;
 let activeWTumblrOverlayLink = null;
+let o18PlantDataPromise = null;
+let o18PlantAnimation = null;
 let twitchPlayerLoader = null;
 let sequentialImageLoading = false;
 let sequentialImageQueue = [];
@@ -107,10 +110,6 @@ const mirrorImageSketch = [
     "          .... . .... ...     .    . ..... ... .. ..."
 ];
 const o5TextOptions = ["gnome ...", "yyyyyyyyyyyyyy", "chome."];
-const o18GraphOptions = [
-    "<<<ooo>>>\n   o:o    \n    oo    \n<<<o:o>>>\n    o:o   \n    o:o   \n    o o   \n    o o   \n    o o   ",
-    "<<<ooo>>>\n   o:o    \n    oo    \n<<<o:o>>>\n    o:o   \n    o:o   \n   o  o   \n  o   o   \n o     o"
-];
 const eroticsTextOptions = [
     "not yet\n:::::::::::::::::::::",
     "but i have many unrealized ideas for erotics\n:::::::::::::::::::::",
@@ -360,22 +359,6 @@ function toggleO5Text(text) {
 }
 
 
-function renderO18Graph(graph, index, steps) {
-    const lines = o18GraphOptions[index].split("\n");
-    const extraArrows = Math.floor(steps / 5);
-
-    [0, 3].forEach((lineIndex) => {
-        const indent = lines[lineIndex].match(/^\s*/)[0];
-        const line = lines[lineIndex].slice(indent.length);
-        lines[lineIndex] = `${indent}${"<".repeat(extraArrows)}${line}${">".repeat(extraArrows)}`;
-    });
-
-    graph.textContent = lines.join("\n");
-    graph.dataset.graphIndex = String(index);
-    graph.dataset.stepCount = String(steps);
-}
-
-
 function clearPrintSubcategory() {
     closePrintTumblrOverlay();
 
@@ -448,6 +431,45 @@ function showPrintSubcategory(category, link, updateUrl = true) {
 
     if (updateUrl) {
         updatePageUrl(`sd/${category}`);
+    }
+}
+
+function clearMirrorSubcategory() {
+    if (activeMirrorSubLink) {
+        activeMirrorSubLink.classList.remove("active");
+        activeMirrorSubLink = null;
+    }
+
+    document.getElementById("mirror-sub-nav").hidden = true;
+}
+
+function showMirrorSubcategory(category, link, updateUrl = true) {
+    if (currentPage !== "side-mirror") {
+        return;
+    }
+
+    const content = document.getElementById("content");
+    const wasActive = activeMirrorSubLink === link;
+    if (activeMirrorSubLink) {
+        scrollPositions.set(`side-mirror-${activeMirrorSubLink.id.slice("mirror-".length)}`, window.scrollY);
+        activeMirrorSubLink.classList.remove("active");
+    }
+
+    activeMirrorSubLink = wasActive ? null : link;
+    content.innerHTML = "";
+
+    if (activeMirrorSubLink) {
+        activeMirrorSubLink.classList.add("active");
+        if (category === "1") {
+            content.innerHTML = renderMirrorContent();
+            startSequentialImageLoading(content);
+            restoreMirrorOverlayStates(content);
+        }
+        restoreScrollAfterLoading(content, "side-mirror", scrollPositions.get(`side-mirror-${category}`));
+    }
+
+    if (updateUrl) {
+        updatePageUrl(wasActive ? "side-mirror" : `side-mirror/${category}`);
     }
 }
 
@@ -1005,14 +1027,177 @@ function toggleWImageSymbol(overlay) {
 
 
 function toggleO18Graph(graph) {
-    const currentIndex = Number(graph.dataset.graphIndex || 0);
-    const steps = Number(graph.dataset.stepCount || 0) + 1;
-    const nextIndex = (currentIndex + 1) % o18GraphOptions.length;
-    renderO18Graph(graph, nextIndex, steps);
-    graph.style.right = `${Number.parseFloat(getComputedStyle(graph).right) + 10}px`;
     graph.classList.remove("flash-red");
     void graph.offsetWidth;
     graph.classList.add("flash-red");
+}
+
+function loadO18PlantData() {
+    if (!o18PlantDataPromise) {
+        o18PlantDataPromise = new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = () => {
+                try {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = image.naturalWidth;
+                    canvas.height = image.naturalHeight;
+                    const context = canvas.getContext("2d");
+                    context.drawImage(image, 0, 0);
+                    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+                    const cells = new Map();
+
+                    for (let y = 0; y < canvas.height; y++) {
+                        for (let x = 0; x < canvas.width; x++) {
+                            const offset = (y * canvas.width + x) * 4;
+                            if (!pixels[offset + 3]) {
+                                continue;
+                            }
+                            const column = Math.round((x - 416) / 5.62);
+                            const row = Math.round((y - 1) / 13.12);
+                            const key = `${column},${row}`;
+                            if (!cells.has(key)) {
+                                cells.set(key, { x: 416 + column * 5.62, y: 1 + row * 13.12, pixels: [] });
+                            }
+                            cells.get(key).pixels.push(offset);
+                        }
+                    }
+
+                    const nodes = Array.from(cells.values());
+                    if (!nodes.length) {
+                        throw new Error("The plant image is empty.");
+                    }
+
+                    // Grow through the nearest characters, bridging gaps between branches when necessary.
+                    const distances = new Float64Array(nodes.length).fill(Infinity);
+                    const parents = new Int32Array(nodes.length).fill(-1);
+                    const visited = new Uint8Array(nodes.length);
+                    let root = 0;
+                    for (let i = 1; i < nodes.length; i++) {
+                        if (Math.hypot(nodes[i].x - 590.5, nodes[i].y - 688)
+                            < Math.hypot(nodes[root].x - 590.5, nodes[root].y - 688)) {
+                            root = i;
+                        }
+                    }
+                    distances[root] = 0;
+
+                    for (let i = 0; i < nodes.length; i++) {
+                        let nearest = -1;
+                        for (let j = 0; j < nodes.length; j++) {
+                            if (!visited[j] && (nearest === -1 || distances[j] < distances[nearest])) {
+                                nearest = j;
+                            }
+                        }
+                        visited[nearest] = 1;
+                        nodes[nearest].depth = parents[nearest] === -1
+                            ? 0
+                            : nodes[parents[nearest]].depth + Math.sqrt(distances[nearest]);
+
+                        for (let j = 0; j < nodes.length; j++) {
+                            if (!visited[j]) {
+                                const dx = nodes[nearest].x - nodes[j].x;
+                                const dy = nodes[nearest].y - nodes[j].y;
+                                const distance = dx * dx + dy * dy;
+                                if (distance < distances[j]) {
+                                    distances[j] = distance;
+                                    parents[j] = nearest;
+                                }
+                            }
+                        }
+                    }
+
+                    nodes.sort((a, b) => a.depth - b.depth);
+                    resolve({ nodes, pixels, maxDepth: nodes[nodes.length - 1].depth });
+                } catch (error) {
+                    reject(error);
+                }
+            };
+            image.onerror = () => reject(new Error("Could not load the plant image."));
+            image.src = `${appBasePath}pic/rnd/o18-plant.png`;
+        }).catch((error) => {
+            o18PlantDataPromise = null;
+            throw error;
+        });
+    }
+
+    return o18PlantDataPromise;
+}
+
+function animateO18Plant(animation, target, updateUrl = true) {
+    cancelAnimationFrame(animation.frame);
+    animation.target = target;
+    const initialProgress = animation.progress;
+    const start = performance.now();
+
+    const step = (now) => {
+        if (!animation.graph.isConnected) {
+            return;
+        }
+
+        const change = (now - start) / 2200;
+        animation.progress = target
+            ? Math.min(target, initialProgress + change)
+            : Math.max(target, initialProgress - change);
+        const threshold = animation.progress * animation.data.maxDepth;
+        const nodes = animation.data.nodes;
+        const output = animation.imageData.data;
+        const original = animation.data.pixels;
+
+        while (animation.progress > 0 && animation.visible < nodes.length
+            && nodes[animation.visible].depth <= threshold) {
+            nodes[animation.visible].pixels.forEach((offset) => {
+                output[offset] = 85;
+                output[offset + 1] = 26;
+                output[offset + 2] = 139;
+                output[offset + 3] = original[offset + 3];
+            });
+            animation.visible++;
+        }
+        while (animation.visible > 0 && (animation.progress === 0
+            || nodes[animation.visible - 1].depth > threshold)) {
+            animation.visible--;
+            nodes[animation.visible].pixels.forEach((offset) => {
+                output[offset + 3] = 0;
+            });
+        }
+        animation.context.putImageData(animation.imageData, 0, 0);
+
+        if (animation.progress !== target) {
+            animation.frame = requestAnimationFrame(step);
+        } else if (target === 0 && currentOverlay === "o18") {
+            animation.graph.closest("#overlay").remove();
+            currentOverlay = null;
+            if (activeSubLink) {
+                activeSubLink.classList.remove("active");
+                activeSubLink = null;
+            }
+            if (updateUrl) {
+                updatePageUrl(currentPage);
+            }
+        }
+    };
+
+    animation.frame = requestAnimationFrame(step);
+}
+
+function positionO18Graph() {
+    const graph = document.querySelector("#overlay .o18-graph");
+    if (!graph) {
+        return;
+    }
+
+    const link = document.getElementById("o18").getBoundingClientRect();
+    const anchorX = link.left + link.width / 2;
+    const scale = Math.max(0, Math.min(
+        1,
+        (anchorX - 10) / 590.5,
+        (window.innerWidth - anchorX - 10) / (815 - 590.5),
+        (link.top - 10) / 688
+    ));
+
+    graph.style.width = `${815 * scale}px`;
+    graph.style.height = `${688 * scale}px`;
+    graph.style.left = `${anchorX - 590.5 * scale}px`;
+    graph.style.top = `${link.top - 688 * scale}px`;
 }
 
 
@@ -1178,6 +1363,8 @@ function fitSubNavigation() {
             link.style.marginLeft = `${originalMargin * fitFactor}px`;
         });
     });
+
+    positionO18Graph();
 }
 
 
@@ -1241,6 +1428,10 @@ function getPageFromUrl() {
         return route[1] === "o" && !route[2] ? "w/o" : "w";
     }
 
+    if (route[0] === "side-mirror") {
+        return route.length > 1 ? `side-mirror/${route.slice(1).join("/")}` : "side-mirror";
+    }
+
     return /^o{1,20}$/.test(route[0] || "")
         ? `o${route[0].length}`
         : route[0] || "";
@@ -1260,6 +1451,7 @@ function clearPageState() {
     document.getElementById("overlay")?.remove();
     document.getElementById("content").innerHTML = "";
     clearPrintSubcategory();
+    clearMirrorSubcategory();
     closeWTumblrOverlay();
     document.getElementById("w-sub-nav").hidden = true;
 
@@ -1284,6 +1476,7 @@ function clearPageState() {
 function restorePageFromUrl() {
     const page = getPageFromUrl();
     const wTumblrOverlay = page === "w/o";
+    const mirrorRoute = page.startsWith("side-mirror/") ? page.slice("side-mirror/".length) : null;
     const locationRoute = window.location.pathname.slice(appBasePath.length).split("/").filter(Boolean);
     const parsedPrintRoute = page.startsWith("sd/") ? page.slice(3).split("/") : [];
     const legacyPrintTumblrRoute = parsedPrintRoute.length === 1 && parsedPrintRoute[0] === "o";
@@ -1294,7 +1487,7 @@ function restorePageFromUrl() {
     const legacyPrintTumblrPath = locationRoute[0] === "prints"
         && locationRoute[1] === "o"
         && !locationRoute[2];
-    const mainPage = printSubcategory ? "sd" : wTumblrOverlay ? "w" : page;
+    const mainPage = printSubcategory ? "sd" : wTumblrOverlay ? "w" : mirrorRoute !== null ? "side-mirror" : page;
     const link = mainPage ? findPageLink(mainPage) : null;
     const hasLegacyPageQuery = new URLSearchParams(window.location.search).has("page");
 
@@ -1337,6 +1530,17 @@ function restorePageFromUrl() {
         toggleWTumblrOverlay(document.getElementById("w-o"), false);
     }
 
+    if (mirrorRoute !== null) {
+        const subLink = /^[1-4]$/.test(mirrorRoute) ? document.getElementById(`mirror-${mirrorRoute}`) : null;
+        if (!subLink) {
+            updatePageUrl("side-mirror", true);
+            return;
+        }
+        if (activeMirrorSubLink !== subLink) {
+            showMirrorSubcategory(mirrorRoute, subLink, false);
+        }
+    }
+
     if (hasLegacyPageQuery || legacyPrintTumblrRoute || legacyPrintTumblrPath || invalidPrintRoute) {
         const canonicalPageRoute = wTumblrOverlay
             ? "w/o"
@@ -1344,7 +1548,9 @@ function restorePageFromUrl() {
                 ? `sd/${printSubcategory}/o`
                 : printSubcategory
                     ? `sd/${printSubcategory}`
-                    : mainPage;
+                    : mirrorRoute !== null
+                        ? `side-mirror/${mirrorRoute}`
+                        : mainPage;
         updatePageUrl(canonicalPageRoute, true);
     }
 }
@@ -1388,6 +1594,7 @@ function showPage(page, link, updateUrl = true) {
         overlay?.remove();
         currentOverlay = null;
         clearPrintSubcategory();
+        clearMirrorSubcategory();
 
         if (activeSubLink) {
             activeSubLink.classList.remove("active");
@@ -1435,9 +1642,10 @@ function showPage(page, link, updateUrl = true) {
 
         currentPage = page;
         document.getElementById("print-sub-nav").hidden = page !== "sd";
+        document.getElementById("mirror-sub-nav").hidden = page !== "side-mirror";
         document.getElementById("w-sub-nav").hidden = page !== "w";
         if (updateUrl) {
-            updatePageUrl(page === "sd" ? "sd/lohne" : page);
+            updatePageUrl(page === "sd" ? "sd/lohne" : page === "side-mirror" ? "side-mirror/1" : page);
         }
 
 
@@ -1548,11 +1756,7 @@ function showPage(page, link, updateUrl = true) {
         /* side-mirror */
 
         if (page === "side-mirror") {
-            content.innerHTML = renderMirrorContent();
-            startSequentialImageLoading(content);
-
-            // Restore mirror overlay states
-            restoreMirrorOverlayStates(content);
+            showMirrorSubcategory("1", document.getElementById("mirror-1"), false);
         }
 
 
@@ -1584,7 +1788,17 @@ function showPage(page, link, updateUrl = true) {
         // close the currently open sub-menu if clicked again
         if (currentOverlay === page) {
             if (page === "o18") {
-                toggleO18Graph(overlay.querySelector(".o18-graph"));
+                if (o18PlantAnimation && o18PlantAnimation.data) {
+                    animateO18Plant(o18PlantAnimation, o18PlantAnimation.target ? 0 : 1, updateUrl);
+                } else {
+                    overlay.remove();
+                    currentOverlay = null;
+                    activeSubLink.classList.remove("active");
+                    activeSubLink = null;
+                    if (updateUrl) {
+                        updatePageUrl(currentPage);
+                    }
+                }
                 return;
             }
 
@@ -1828,16 +2042,38 @@ function showPage(page, link, updateUrl = true) {
             startSequentialImageLoading(overlay);
         }
 
-        /* o18 text graphs */
+        /* o18 plant */
 
         if (page === "o18") {
             overlay.innerHTML = `
-                <button type="button" class="o18-graph" aria-label="Switch text graph"></button>
+                <button type="button" class="o18-graph" aria-label="Plant drawing"><canvas width="815" height="688"></canvas></button>
             `;
             const graph = overlay.querySelector(".o18-graph");
-            renderO18Graph(graph, 0, 0);
+            positionO18Graph();
             graph.addEventListener("click", function() {
                 toggleO18Graph(this);
+            });
+            const animation = {
+                graph,
+                context: graph.querySelector("canvas").getContext("2d"),
+                progress: 0,
+                target: 1,
+                visible: 0,
+                frame: 0
+            };
+            o18PlantAnimation = animation;
+            loadO18PlantData().then((data) => {
+                if (!graph.isConnected || o18PlantAnimation !== animation) {
+                    return;
+                }
+                animation.data = data;
+                animation.imageData = animation.context.createImageData(815, 688);
+                animateO18Plant(animation, 1);
+            }).catch((error) => {
+                console.error("Failed to display the plant drawing:", error);
+                if (graph.isConnected) {
+                    graph.textContent = "Unable to load plant drawing.";
+                }
             });
         }
 

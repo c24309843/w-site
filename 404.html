@@ -9,7 +9,7 @@
 <script>
     const requestedPath = window.location.pathname + window.location.search + window.location.hash;
     const path = window.location.pathname.replace(/\/+$/, "");
-    const nestedPathIndex = path.search(/\/(?:prints|w)\//);
+    const nestedPathIndex = path.search(/\/(?:prints|w|side-mirror)\//);
     const basePath = nestedPathIndex >= 0
         ? path.slice(0, nestedPathIndex + 1) || "/"
         : path.slice(0, path.lastIndexOf("/") + 1) || "/";
