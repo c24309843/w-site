@@ -1162,8 +1162,27 @@ function loadO18PlantData() {
     return o18PlantDataPromise;
 }
 
-const O17_CELL_WIDTH = 8;
-const O17_CELL_HEIGHT = 10;
+// Drawn at the same source size as the o18 image and scaled by O18_GRAPH_SCALE so the characters look identical.
+// The glyph bitmaps (alpha values) are copied from the characters in o18-plant.png.
+const O17_CELL_WIDTH = 6;
+const O17_CELL_HEIGHT = 6;
+const O17_GLYPH_ALPHA = {
+    o: { dx: 0, dy: 0, rows: [[0, 0, 42, 0, 0], [63, 150, 72, 174, 15], [234, 60, 0, 111, 195], [252, 33, 0, 72, 240], [78, 150, 66, 171, 45], [0, 48, 75, 54, 0]] },
+    ".": { dx: 2, dy: 4, rows: [[147, 81], [60, 9]] }
+};
+const O17_GLYPHS = {};
+Object.entries(O17_GLYPH_ALPHA).forEach(([character, { dx, dy, rows }]) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = rows[0].length;
+    canvas.height = rows.length;
+    const imageData = canvas.getContext("2d").createImageData(canvas.width, canvas.height);
+    rows.forEach((line, y) => line.forEach((alpha, x) => {
+        const index = (y * canvas.width + x) * 4;
+        imageData.data.set([0x55, 0x1A, 0x8B, alpha], index);
+    }));
+    canvas.getContext("2d").putImageData(imageData, 0, 0);
+    O17_GLYPHS[character] = { canvas, dx, dy };
+});
 
 function getO17PlantGeometry() {
     const rows = o17PlantArt.length;
@@ -1202,7 +1221,7 @@ function buildO17PlantData() {
     canvas.height = height;
     const context = canvas.getContext("2d");
     context.fillStyle = "#551A8B";
-    context.font = `16px "Times New Roman"`;
+    context.font = `10px "Times New Roman"`;
     context.textAlign = "center";
     context.textBaseline = "middle";
 
@@ -1299,7 +1318,10 @@ function buildO17PlantData() {
     nodes.forEach(([x, y]) => {
         const row = y / O17_CELL_HEIGHT;
         const column = x / O17_CELL_WIDTH;
-        context.fillText(o17PlantArt[row][column], x + O17_CELL_WIDTH / 2, y + O17_CELL_HEIGHT / 2);
+        const glyph = O17_GLYPHS[o17PlantArt[row][column]];
+        if (glyph) {
+            context.drawImage(glyph.canvas, x + glyph.dx, y + glyph.dy);
+        }
     });
 
     return { image: canvas, nodes, maxDepth: finalDepth, width, height };
@@ -1386,7 +1408,6 @@ function positionO18Graph() {
     let scale = O18_GRAPH_SCALE;
     if (page === "o17") {
         ({ width, height, anchorX: rootX } = getO17PlantGeometry());
-        scale = 1;
     }
 
     graph.style.width = `${width * scale}px`;
