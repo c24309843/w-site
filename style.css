@@ -252,6 +252,15 @@ nav .nav-static {
     height: 674px;
 }
 
+.w-image-covered-empty.w-image-covered-short {
+    height: 380px;
+}
+
+/* 8 text rows: 8 * 23px line height, minus the 16px overlay bleed */
+.w-image-covered-empty.w-image-covered-eight-rows {
+    height: 168px;
+}
+
 .w-image-covered-flowers .w-image-ones {
     inset: -8px -24px -8px -8px;
 }
@@ -356,6 +365,28 @@ nav .nav-static {
     height: 1.15em;
     display: flex;
     justify-content: space-between;
+}
+
+.w-image-one-border .symbol-circle-clip {
+    inset: 8px;
+    overflow: hidden;
+}
+
+.w-image-one-border .symbol-circle {
+    position: absolute;
+    pointer-events: auto;
+    cursor: pointer;
+    display: grid;
+    grid-template: repeat(18, 1.15em) / repeat(18, 1.15em);
+    width: 20.7em;
+    height: 20.7em;
+    overflow: visible;
+}
+
+.w-image-one-border .symbol-circle > i {
+    font-style: normal;
+    line-height: 1.15em;
+    text-align: center;
 }
 
 .w-image-one-border .symbol-accent[hidden] {

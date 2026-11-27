@@ -12,6 +12,8 @@ let activePrintOverlayLink = null;
 let activeWTumblrOverlayLink = null;
 let o18PlantDataPromise = null;
 let o18PlantAnimation = null;
+// Plant characters are 5px wide in the source image; the menu "o" is 8px wide
+const O18_GRAPH_SCALE = 8 / 5;
 let twitchPlayerLoader = null;
 let sequentialImageLoading = false;
 let sequentialImageQueue = [];
@@ -809,6 +811,8 @@ function renderWContent() {
         ["20250518_233200.jpg", { threeOAccent: true, threeMovingOs: true }],
         ["20250601_210220.jpg", { threeOAccent: true, threeMovingOs: true }],
         ["20250601_210641.jpg", { threeOAccent: true, threeMovingOs: true }],
+        // Circle of o's that drifts down and re-enters from the top
+        ["20240422_002550.jpg", { movingCircle: true }],
         ["20250622_211727.jpg", { threeOAccent: true, accentPosition: "right", singleMovingO: true }],
         ["20250616_212118.jpg", { threeOAccent: true, threeMovingOs: true }],
         // Three moving o's on last image
@@ -831,7 +835,8 @@ function renderWContent() {
         accentPosition,
         withMovingOAccent = false,
         withSingleMovingO = false,
-        withThreeMovingOs = false
+        withThreeMovingOs = false,
+        withCircle = false
     ) => {
         const horizontal = `${symbol} `.repeat(60);
         const vertical = `${symbol}\n`.repeat(100);
@@ -842,7 +847,7 @@ function renderWContent() {
         const threeOAccent = (withThreeOAccent || withThreeMovingOs)
             ? `<span class="${accentClass}">${withSingleMovingO ? "<span>o</span>" : threeOs}</span>`
             : "";
-        return `<span class="w-image-one-border w-image-symbol-border${borderClass}" aria-hidden="true">${threeOAccent}<span class="top">${horizontal}</span><span class="right">${vertical}</span><span class="bottom">${bottom}</span><span class="left">${vertical}</span></span>`;
+        return `<span class="w-image-one-border w-image-symbol-border${borderClass}" aria-hidden="true">${threeOAccent}${withCircle ? wCircleMarkup() : ""}<span class="top">${horizontal}</span><span class="right">${vertical}</span><span class="bottom">${bottom}</span><span class="left">${vertical}</span></span>`;
     };
 
     return wImages.map((filename, index) => {
@@ -897,7 +902,8 @@ function renderWContent() {
         accentPosition,
         hasMovingOAccent,
         withSingleMovingO,
-        withThreeMovingOs
+        withThreeMovingOs,
+        features.movingCircle || false
     )}
  </div>`
                         : "";
@@ -908,9 +914,33 @@ function renderWContent() {
 </div>`
             : image;
 
-        const outlinePost = index === 11 ? `
+        const outlinePost = index === 2 ? `
 <div class="w-item" data-image-filename="w-o-outline">
     <div class="w-image-covered w-image-covered-empty">
+        <div class="w-image-ones show-one-border" data-mode="border" aria-hidden="true"
+            onclick="toggleWImageFromText(this)">
+            <span class="w-image-overlay-fill" aria-hidden="true">${"o ".repeat(2500)}</span>
+            ${wImageSymbolBorder("o")}
+        </div>
+    </div>
+    ${renderImageDescription("toggleWImageFromDescription(this)")}
+</div>` : "";
+
+        const shortOutlinePost = index === 23 ? `
+<div class="w-item" data-image-filename="w-o-outline-short">
+    <div class="w-image-covered w-image-covered-empty w-image-covered-short">
+        <div class="w-image-ones show-one-border" data-mode="border" aria-hidden="true"
+            onclick="toggleWImageFromText(this)">
+            <span class="w-image-overlay-fill" aria-hidden="true">${"o ".repeat(2500)}</span>
+            ${wImageSymbolBorder("o")}
+        </div>
+    </div>
+    ${renderImageDescription("toggleWImageFromDescription(this)")}
+</div>` : "";
+
+        const eightRowPost = index === 11 ? `
+<div class="w-item" data-image-filename="w-o-outline-8-rows">
+    <div class="w-image-covered w-image-covered-empty w-image-covered-eight-rows">
         <div class="w-image-ones show-one-border" data-mode="border" aria-hidden="true"
             onclick="toggleWImageFromText(this)">
             <span class="w-image-overlay-fill" aria-hidden="true">${"o ".repeat(2500)}</span>
@@ -924,7 +954,7 @@ function renderWContent() {
 <div class="w-item" data-image-number="${index + 1}" data-image-filename="${filename}">
     ${imageMarkup}
     ${renderImageDescription("toggleWImageFromDescription(this)")}
-    </div>${outlinePost}`;
+    </div>${eightRowPost}${outlinePost}${shortOutlinePost}`;
     }).join("");
 }
 
@@ -933,10 +963,71 @@ function toggleWImageFromDescription(description) {
     toggleWImageFromText(overlay);
 }
 
+function wCircleMarkup() {
+    const size = 18;
+    const center = (size - 1) / 2;
+    const half = size % 2 ? 0 : 0.5;
+    const cells = new Set();
+    // Midpoint-style circle: walk the flatter arcs along one axis so every step adds exactly one cell
+    const limit = center / Math.SQRT2;
+    for (let along = 0; along < size; along++) {
+        const offset = along - center;
+        if (Math.abs(offset) > limit) {
+            continue;
+        }
+        const across = Math.round(Math.sqrt(center * center - offset * offset) - half) + half;
+        for (const sign of [-1, 1]) {
+            const other = Math.round(center + sign * across);
+            cells.add(`${other},${along}`);
+            cells.add(`${along},${other}`);
+        }
+    }
+    const markup = [...cells].map((cell) => {
+        const [row, col] = cell.split(",").map(Number);
+        return `<i style="grid-area:${row + 1}/${col + 1}">o</i>`;
+    }).join("");
+    return `<span class="symbol-circle-clip"><span class="symbol-circle" data-line="0">${markup}</span></span>`;
+}
+
+// The circle is 18x18 square cells. Its centre starts 11 cells from the picture's right edge and 13 cells
+// from its top. It drifts down one row per click and left one column every
+// 3 rows, and re-enters from the top at its starting column.
+function setWCircleLine(circle, line) {
+    const size = 18;
+    const clip = circle.parentElement;
+    const lineHeight = parseFloat(getComputedStyle(clip).fontSize) * 1.15;
+    const rows = Math.max(1, Math.round(clip.clientHeight / lineHeight));
+    const cols = Math.max(size, Math.round(clip.clientWidth / lineHeight));
+    const cycle = rows + size;
+    const startRow = 13 - size / 2;
+    const startColumn = cols - 11 - size / 2;
+    const entryOffset = startRow + size;
+    const position = line + entryOffset;
+    const step = position % cycle;
+    const shift = position < cycle ? line : step;
+    const column = startColumn - Math.floor(shift / 3);
+    circle.dataset.line = String(line);
+    circle.style.top = `${(step - size) * 1.15}em`;
+    circle.style.left = `${column * 1.15}em`;
+}
+
 function setWMovingAccentLine(movingAccent, line) {
+    if (movingAccent.classList.contains("symbol-circle")) {
+        setWCircleLine(movingAccent, line);
+        return;
+    }
+    const overlay = movingAccent.closest(".w-image-ones");
+    const lineHeight = parseFloat(getComputedStyle(overlay).fontSize) * 1.15;
+    const rows = Math.max(1, Math.round(overlay.clientHeight / lineHeight));
+    const startRow = 6;
+    // Loops like the circle: re-enters from the top at its starting column
+    const cycle = rows + 1;
+    const position = line + startRow + 1;
+    const step = position % cycle;
+    const shift = position < cycle ? line : step;
     movingAccent.dataset.line = String(line);
-    movingAccent.style.top = `${(6 + line) * 1.15}em`;
-    movingAccent.style.transform = `translateX(-${Math.floor(line / 5)}em)`;
+    movingAccent.style.top = `${(step - 1) * 1.15}em`;
+    movingAccent.style.transform = `translateX(-${Math.floor(shift / 5)}em)`;
 }
 
 function toggleWImageFromText(overlay) {
@@ -945,7 +1036,7 @@ function toggleWImageFromText(overlay) {
     void description.offsetWidth;
     description.classList.add("flash-red");
 
-    const movingAccent = overlay.querySelector(".symbol-accent--moving, .symbol-accent--single-moving, .symbol-accent--triple-moving");
+    const movingAccent = overlay.querySelector(".symbol-accent--moving, .symbol-accent--single-moving, .symbol-accent--triple-moving, .symbol-circle");
     if (movingAccent) {
         const nextLine = Number(movingAccent.dataset.line || 0) + 1;
         setWMovingAccentLine(movingAccent, nextLine);
@@ -1135,12 +1226,7 @@ function positionO18Graph() {
 
     const link = document.getElementById("o18").getBoundingClientRect();
     const anchorX = link.left + link.width / 2;
-    const scale = Math.max(0, Math.min(
-        1,
-        (anchorX - 10) / 590.5,
-        (window.innerWidth - anchorX - 10) / (815 - 590.5),
-        (link.top - 10) / 688
-    ));
+    const scale = O18_GRAPH_SCALE;
 
     graph.style.width = `${815 * scale}px`;
     graph.style.height = `${688 * scale}px`;
@@ -1622,6 +1708,19 @@ function showPage(page, link, updateUrl = true) {
                     const filename = item.dataset.imageFilename;
                     const overlay = item.querySelector(".w-image-ones");
                     const savedState = overlayStates.get(filename);
+
+                    const circle = overlay && overlay.querySelector(".symbol-circle, .symbol-accent--moving, .symbol-accent--single-moving, .symbol-accent--triple-moving");
+                    if (circle) {
+                        const placeCircle = () => setWMovingAccentLine(
+                            circle,
+                            Number((overlayStates.get(filename) || {}).movingLine || 0)
+                        );
+                        placeCircle();
+                        const circleImage = item.querySelector("img");
+                        if (circleImage) {
+                            circleImage.addEventListener("load", placeCircle);
+                        }
+                    }
                     
                     if (overlay && savedState) {
                         const movingAccent = overlay.querySelector(".symbol-accent--moving, .symbol-accent--single-moving, .symbol-accent--triple-moving");
