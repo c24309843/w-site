@@ -12,6 +12,7 @@ let activePrintOverlayLink = null;
 let activeWTumblrOverlayLink = null;
 let o18PlantDataPromise = null;
 let o18PlantAnimation = null;
+let o17PlantDataPromise = null;
 // Plant characters are 5px wide in the source image; the menu "o" is 8px wide
 const O18_GRAPH_SCALE = 8 / 5;
 let twitchPlayerLoader = null;
@@ -1145,7 +1146,9 @@ function loadO18PlantData() {
                 resolve({
                     image,
                     nodes: o18PlantNodes,
-                    maxDepth: o18PlantNodes[o18PlantNodes.length - 1][4]
+                    maxDepth: o18PlantNodes[o18PlantNodes.length - 1][4],
+                    width: 815,
+                    height: 688
                 });
             };
             image.onerror = () => reject(new Error("Could not load the plant image."));
@@ -1157,6 +1160,156 @@ function loadO18PlantData() {
     }
 
     return o18PlantDataPromise;
+}
+
+const O17_CELL_WIDTH = 8;
+const O17_CELL_HEIGHT = 10;
+
+function getO17PlantGeometry() {
+    const rows = o17PlantArt.length;
+    const columns = Math.max(...o17PlantArt.map((line) => line.length));
+    const rootRow = rows - 1;
+    const rootColumn = o17PlantArt[rootRow].search(/\S/);
+    return {
+        width: columns * O17_CELL_WIDTH,
+        height: rows * O17_CELL_HEIGHT,
+        anchorX: (rootColumn + 0.5) * O17_CELL_WIDTH
+    };
+}
+
+// Characters that touch each other (including diagonally) grow one by one: first the tree from its root,
+// then one last branch at the top right, then the surrounding groups, and finally the loose characters at once.
+function buildO17PlantData() {
+    const { width, height } = getO17PlantGeometry();
+    const rows = o17PlantArt.length;
+    const columns = Math.round(width / O17_CELL_WIDTH);
+    const has = (row, column) => row >= 0 && row < rows && column >= 0
+        && (o17PlantArt[row][column] || " ") !== " ";
+    const neighbors = (row, column, gap = 1, allowed = () => true) => {
+        const found = [];
+        for (let dy = -gap; dy <= gap; dy++) {
+            for (let dx = -gap; dx <= gap; dx++) {
+                if ((dy || dx) && has(row + dy, column + dx) && allowed(row + dy, column + dx)) {
+                    found.push([row + dy, column + dx]);
+                }
+            }
+        }
+        return found;
+    };
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    context.fillStyle = "#551A8B";
+    context.font = `16px "Times New Roman"`;
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+
+    const depths = new Map();
+    const order = [];
+    const key = (row, column) => `${row},${column}`;
+
+    // Grows outward one character per depth step from the given starting characters
+    const grow = (seeds, startDepth, gap = 1, allowed = () => true) => {
+        const queue = [];
+        seeds.forEach(([row, column]) => {
+            if (!depths.has(key(row, column))) {
+                depths.set(key(row, column), startDepth);
+                queue.push([row, column]);
+            }
+        });
+        for (let index = 0; index < queue.length; index++) {
+            const [row, column] = queue[index];
+            neighbors(row, column, gap, allowed).forEach(([nextRow, nextColumn]) => {
+                if (!depths.has(key(nextRow, nextColumn))) {
+                    depths.set(key(nextRow, nextColumn), depths.get(key(row, column)) + 1);
+                    queue.push([nextRow, nextColumn]);
+                }
+            });
+        }
+        order.push(...queue);
+        return queue.length ? depths.get(key(...queue[queue.length - 1])) : startDepth - 1;
+    };
+    const unvisited = () => {
+        const found = [];
+        for (let row = rows - 1; row >= 0; row--) {
+            for (let column = 0; column < columns; column++) {
+                if (has(row, column) && !depths.has(key(row, column))) {
+                    found.push([row, column]);
+                }
+            }
+        }
+        return found;
+    };
+
+    // 1. The tree grows from the lowest character
+    const rootRow = rows - 1;
+    const rootColumn = o17PlantArt[rootRow].search(/\S/);
+    let lastDepth = grow([[rootRow, rootColumn]], 0);
+
+    // 2. One last branch at the top right, bridging the small gaps that separate it from the tree
+    const inTopRight = (row, column) => row <= 20 && column >= 95;
+    const branchSeeds = unvisited().filter(([row, column]) => inTopRight(row, column)
+        && neighbors(row, column, 3, (r, c) => depths.has(key(r, c))).length);
+    lastDepth = Math.max(lastDepth, grow(branchSeeds, lastDepth + 1, 3, inTopRight));
+
+    // 3. The surrounding groups of touching characters grow from their lowest character
+    const groupSeeds = [];
+    const groupSeen = new Set();
+    unvisited().forEach(([row, column]) => {
+        if (groupSeen.has(key(row, column))) {
+            return;
+        }
+        groupSeen.add(key(row, column));
+        if (!neighbors(row, column).length) {
+            return;
+        }
+        groupSeeds.push([row, column]);
+        const stack = [[row, column]];
+        while (stack.length) {
+            const [r, c] = stack.pop();
+            neighbors(r, c).forEach(([nr, nc]) => {
+                if (!groupSeen.has(key(nr, nc))) {
+                    groupSeen.add(key(nr, nc));
+                    stack.push([nr, nc]);
+                }
+            });
+        }
+    });
+    lastDepth = Math.max(lastDepth, grow(groupSeeds, lastDepth + 1));
+
+    // 4. Characters touching nothing appear all at once at the very end
+    const finalDepth = lastDepth + 1;
+    unvisited().forEach(([row, column]) => {
+        depths.set(key(row, column), finalDepth);
+        order.push([row, column]);
+    });
+
+    const nodes = order
+        .map(([row, column]) => [
+            column * O17_CELL_WIDTH,
+            row * O17_CELL_HEIGHT,
+            O17_CELL_WIDTH,
+            O17_CELL_HEIGHT,
+            depths.get(key(row, column))
+        ])
+        .sort((a, b) => a[4] - b[4]);
+
+    nodes.forEach(([x, y]) => {
+        const row = y / O17_CELL_HEIGHT;
+        const column = x / O17_CELL_WIDTH;
+        context.fillText(o17PlantArt[row][column], x + O17_CELL_WIDTH / 2, y + O17_CELL_HEIGHT / 2);
+    });
+
+    return { image: canvas, nodes, maxDepth: finalDepth, width, height };
+}
+
+function loadO17PlantData() {
+    if (!o17PlantDataPromise) {
+        o17PlantDataPromise = Promise.resolve().then(buildO17PlantData);
+    }
+    return o17PlantDataPromise;
 }
 
 function animateO18Plant(animation, target, updateUrl = true) {
@@ -1196,13 +1349,13 @@ function animateO18Plant(animation, target, updateUrl = true) {
         if (changed) {
             context.globalCompositeOperation = "source-in";
             context.fillStyle = "#551A8B";
-            context.fillRect(0, 0, 815, 688);
+            context.fillRect(0, 0, animation.data.width, animation.data.height);
             context.globalCompositeOperation = "source-over";
         }
 
         if (animation.progress !== target) {
             animation.frame = requestAnimationFrame(step);
-        } else if (target === 0 && currentOverlay === "o18") {
+        } else if (target === 0 && currentOverlay === animation.page) {
             animation.graph.closest("#overlay").remove();
             currentOverlay = null;
             if (activeSubLink) {
@@ -1224,14 +1377,22 @@ function positionO18Graph() {
         return;
     }
 
-    const link = document.getElementById("o18").getBoundingClientRect();
+    const page = graph.dataset.plantPage;
+    const link = document.getElementById(page).getBoundingClientRect();
     const anchorX = link.left + link.width / 2;
-    const scale = O18_GRAPH_SCALE;
+    let width = 815;
+    let height = 688;
+    let rootX = 590.5;
+    let scale = O18_GRAPH_SCALE;
+    if (page === "o17") {
+        ({ width, height, anchorX: rootX } = getO17PlantGeometry());
+        scale = 1;
+    }
 
-    graph.style.width = `${815 * scale}px`;
-    graph.style.height = `${688 * scale}px`;
-    graph.style.left = `${anchorX - 590.5 * scale}px`;
-    graph.style.top = `${link.top - 688 * scale}px`;
+    graph.style.width = `${width * scale}px`;
+    graph.style.height = `${height * scale}px`;
+    graph.style.left = `${anchorX - rootX * scale}px`;
+    graph.style.top = `${link.top - height * scale}px`;
 }
 
 
@@ -1617,7 +1778,7 @@ function showPage(page, link, updateUrl = true) {
 
     const overlayPages = [
         "o1", "o2", "o3", "o4", "o5",
-        "o6", "o7", "o8", "o9", "o10", "o13", "o18"
+        "o6", "o7", "o8", "o9", "o10", "o13", "o17", "o18"
     ];
 
 
@@ -1834,7 +1995,7 @@ function showPage(page, link, updateUrl = true) {
 
         // close the currently open sub-menu if clicked again
         if (currentOverlay === page) {
-            if (page === "o18") {
+            if (page === "o17" || page === "o18") {
                 if (o18PlantAnimation && o18PlantAnimation.data) {
                     animateO18Plant(o18PlantAnimation, o18PlantAnimation.target ? 0 : 1, updateUrl);
                 } else {
@@ -2089,11 +2250,12 @@ function showPage(page, link, updateUrl = true) {
             startSequentialImageLoading(overlay);
         }
 
-        /* o18 plant */
+        /* o17 / o18 plants */
 
-        if (page === "o18") {
+        if (page === "o17" || page === "o18") {
+            const plantSize = page === "o17" ? getO17PlantGeometry() : { width: 815, height: 688 };
             overlay.innerHTML = `
-                <button type="button" class="o18-graph" aria-label="Plant drawing"><canvas width="815" height="688"></canvas></button>
+                <button type="button" class="o18-graph" data-plant-page="${page}" aria-label="Plant drawing"><canvas width="${plantSize.width}" height="${plantSize.height}"></canvas></button>
             `;
             const graph = overlay.querySelector(".o18-graph");
             positionO18Graph();
@@ -2101,10 +2263,11 @@ function showPage(page, link, updateUrl = true) {
                 if (o18PlantAnimation && o18PlantAnimation.data) {
                     animateO18Plant(o18PlantAnimation, 0);
                 } else {
-                    document.getElementById("o18").click();
+                    document.getElementById(page).click();
                 }
             });
             const animation = {
+                page,
                 graph,
                 context: graph.querySelector("canvas").getContext("2d"),
                 progress: 0,
@@ -2113,7 +2276,7 @@ function showPage(page, link, updateUrl = true) {
                 frame: 0
             };
             o18PlantAnimation = animation;
-            loadO18PlantData().then((data) => {
+            (page === "o17" ? loadO17PlantData() : loadO18PlantData()).then((data) => {
                 if (!graph.isConnected || o18PlantAnimation !== animation) {
                     return;
                 }
