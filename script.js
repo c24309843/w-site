@@ -733,9 +733,16 @@ function renderLohneContent() {
 
 function renderMirrorContent() {
     const mirrorImage = (filename) =>
-        `${appBasePath}pic/mirror/${encodeURIComponent(filename)}`;
+        `${appBasePath}pic/mirror/left1/${encodeURIComponent(filename)}`;
 
-    return mirrorImages.map((filename) => {
+    const shuffledMirrorImages = [...mirrorImages];
+    for (let index = shuffledMirrorImages.length - 1; index > 0; index -= 1) {
+        const randomIndex = Math.floor(Math.random() * (index + 1));
+        [shuffledMirrorImages[index], shuffledMirrorImages[randomIndex]] =
+            [shuffledMirrorImages[randomIndex], shuffledMirrorImages[index]];
+    }
+
+    return shuffledMirrorImages.map((filename) => {
         const image = mirrorImage(filename);
         return `
 <div class="mirror-item" data-image-filename="${filename}">
@@ -786,8 +793,8 @@ function renderWContent() {
         "20250616_212118.jpg",
         "20250622_211727.jpg",
         "20250806_110341.jpg",
-        "New folder/20250526_010739.jpg",
-        "New folder/20260111_192024.jpg"
+        "20250526_010739.jpg",
+        "20260111_192024.jpg"
     ];
     const wImage = (filename) =>
         `${appBasePath}pic/w/${filename.split("/").map(encodeURIComponent).join("/")}`;
@@ -817,7 +824,7 @@ function renderWContent() {
         ["20250622_211727.jpg", { threeOAccent: true, accentPosition: "right", singleMovingO: true }],
         ["20250616_212118.jpg", { threeOAccent: true, threeMovingOs: true }],
         // Three moving o's on last image
-        ["New folder/20260111_192024.jpg", { threeMovingOs: true }]
+        ["20260111_192024.jpg", { threeMovingOs: true }]
     ]);
     const wImageOneBorder = (thickness) => {
         const horizontal = Array.from(
